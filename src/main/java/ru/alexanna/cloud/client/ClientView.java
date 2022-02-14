@@ -52,22 +52,6 @@ public class ClientView implements Initializable/*, MessageListener*/ {
 
     }
 
-/*    @Override
-    public void onMessageReceived(CloudMessage message) {
-        switch (message.getType()) {
-            case FILE:
-                processFileMessage((FileMessage) message);
-                break;
-            case LIST:
-                processListMessage((ListFilesMessage) message);
-                break;
-            case PATH_CHANGE_REQUEST:
-                // Temporary
-                serverPath.setText(((PathChangeRequestMessage) message).getDirName());
-                break;
-        }
-    }*/
-
 /*    private void processFileMessage(FileMessage message) {
         try {
             Files.write(clientDir.resolve(message.getFileName()), message.getBytes());

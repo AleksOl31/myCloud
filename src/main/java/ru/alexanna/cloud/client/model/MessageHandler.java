@@ -21,8 +21,8 @@ public class MessageHandler implements MessageListener {
             case LIST:
                 processListMessage((ListFilesMessage) message);
                 break;
-            case PATH_CHANGE_REQUEST:
-                break;
+            /*case PATH_CHANGE_REQUEST:
+                break;*/
         }
     }
 
