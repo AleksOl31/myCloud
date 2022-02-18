@@ -1,5 +1,7 @@
 package ru.alexanna.cloud.client.model;
 
+import java.nio.file.Path;
+
 public interface Server {
     /**
      * Registers an observer object
@@ -11,8 +13,9 @@ public interface Server {
 
     /**
      *
+     * @param path
      */
-    void upload();
+    void upload(Path path);
     void download();
     void changeCurrentDir(String selectedPath);
 }

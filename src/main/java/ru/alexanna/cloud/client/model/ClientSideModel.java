@@ -22,10 +22,24 @@ public class ClientSideModel {
     public void setClientDir(Path clientDir) {
         try {
             this.clientDir = clientDir;
-            setClientFilesList(Files.list(clientDir).collect(Collectors.toList()));
+            setClientFilesList(Files.list(clientDir)
+                    .filter(this::isHidden)
+                    .sorted()
+                    .collect(Collectors.toList()));
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private boolean isHidden(Path path) {
+        boolean result;
+        try {
+            result = !Files.isHidden(path);
+        } catch (IOException e) {
+            System.out.println(e.getMessage());
+            return false;
+        }
+        return result;
     }
 
     public List<Path> getClientFilesList() {

@@ -17,12 +17,12 @@ import ru.alexanna.cloud.model.*;
 public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage> {
 
     private Path currentDir;
+    private final String HOME_DIR = "data";
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        // init client dir
         log.debug("New client joined...");
-        currentDir = Paths.get("data");
+        currentDir = Paths.get(HOME_DIR);
         sendListFiles(ctx);
     }
 
@@ -38,11 +38,6 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
                 sendListFiles(ctx);
                 break;
             case PATH_CHANGE_REQUEST:
-                /*log.debug(cloudMessage.toString());
-                if (Files.isDirectory(Paths.get(currentDir.toString(), ((PathChangeRequestMessage) cloudMessage).getDirName()))) {
-                    currentDir = Paths.get(currentDir.toString(), ((PathChangeRequestMessage) cloudMessage).getDirName());
-                    sendListFiles(ctx);
-                }*/
                 processPathChangeRequestMessage((PathChangeRequestMessage) cloudMessage, ctx);
 
                 break;
@@ -50,7 +45,7 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
     }
 
     @Override
-    public void channelInactive(ChannelHandlerContext ctx) throws Exception {
+    public void channelInactive(ChannelHandlerContext ctx) {
         log.debug("Client disconnected...");
     }
 
@@ -67,7 +62,12 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
 
     private void processFileMessage(FileMessage cloudMessage) {
         try {
-            Files.write(currentDir.resolve(cloudMessage.getFileName()), cloudMessage.getBytes());
+            log.debug("FileMessage received {}, size {}", cloudMessage.getFileName(), cloudMessage.getFileSize());
+//            Files.write(currentDir.resolve(cloudMessage.getFileName()), cloudMessage.getFileSize());
+            if (!Files.exists(currentDir.resolve(cloudMessage.getFileName()))) {
+                Files.createFile(currentDir.resolve(cloudMessage.getFileName()));
+                log.debug("FileMessage bytes wrote: {}", cloudMessage.getFileSize());
+            }
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -84,14 +84,16 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
 
     private void processPathChangeRequestMessage(PathChangeRequestMessage cloudMessage, ChannelHandlerContext ctx) {
         Path targetPath = currentDir.resolve(cloudMessage.getDirName()).normalize();
-        if (Files.isDirectory(targetPath) && !targetPath.equals(Paths.get("data"))) {
-            currentDir = targetPath;
-            sendListFiles(ctx);
+        if (Files.isDirectory(targetPath)) {
+            if (!(currentDir.endsWith(HOME_DIR) && cloudMessage.getDirName().equals(".."))) {
+                currentDir = targetPath;
+                sendListFiles(ctx);
+            }
         }
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
         ctx.close();
     }
 }

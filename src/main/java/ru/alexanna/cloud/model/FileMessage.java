@@ -10,11 +10,11 @@ import lombok.Data;
 public class FileMessage implements CloudMessage {
 
     private final String fileName;
-    private final byte[] bytes;
+    private final long fileSize;
 
     public FileMessage(Path path) throws IOException {
         fileName = path.getFileName().toString();
-        bytes = Files.readAllBytes(path);
+        fileSize = Files.size(path);
     }
 
     @Override

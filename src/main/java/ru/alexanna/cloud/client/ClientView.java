@@ -61,13 +61,13 @@ public class ClientView implements Initializable/*, MessageListener*/ {
         }
     }*/
 
-    public void upload(ActionEvent actionEvent) throws IOException {
+    public void upload(ActionEvent actionEvent) {
         String fileName = clientView.getSelectionModel().getSelectedItem();
-//        connection.sendMessage(new FileMessage(clientDir.resolve(fileName)));
+        viewModel.upload(fileName);
     }
 
 
-    public void download(ActionEvent actionEvent) throws IOException {
+    public void download(ActionEvent actionEvent) {
         String fileName = serverView.getSelectionModel().getSelectedItem();
 //        connection.sendMessage(new FileRequestMessage(fileName));
     }

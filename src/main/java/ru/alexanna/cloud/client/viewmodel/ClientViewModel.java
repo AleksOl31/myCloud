@@ -7,6 +7,8 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
+import javafx.concurrent.Service;
+import javafx.concurrent.Task;
 import ru.alexanna.cloud.client.model.ClientSideModel;
 import ru.alexanna.cloud.client.model.Observer;
 import ru.alexanna.cloud.client.model.ServerSideModel;
@@ -34,18 +36,16 @@ public class ClientViewModel implements Observer {
 
     private void initClientState() {
         clientSideModel = new ClientSideModel(Paths.get(System.getProperty("user.home")));
-        openClientDir();
+        updateClientSideState();
     }
 
-    private void openClientDir() {
-        Platform.runLater( () -> {
+    private void updateClientSideState() {
+        Platform.runLater(() -> {
             setClientDir(clientSideModel.getClientDir().toString());
             clientFiles.clear();
             clientFiles.addAll(clientSideModel.getClientFilesList().stream()
                     .map(path -> path.getFileName().toString())
-                    .sorted()
                     .collect(Collectors.toList()));
-            System.out.println(clientFiles);
         });
     }
 
@@ -107,18 +107,21 @@ public class ClientViewModel implements Observer {
         Path selectedPath = clientSideModel.getClientDir().resolve(selectedDir);
         if (Files.isDirectory(selectedPath)) {
             clientSideModel.setClientDir(selectedPath);
-            openClientDir();
+            updateClientSideState();
         }
     }
 
     public void goToTopClientFolder() {
         Path parentPath = clientSideModel.getClientDir().getParent();
         clientSideModel.setClientDir(parentPath);
-        openClientDir();
+        updateClientSideState();
     }
 
     public void upload(String fileName) {
-
+        Platform.runLater(() -> {
+            Path path = clientSideModel.getClientDir().resolve(fileName);
+            serverSideModel.upload(path);
+        });
     }
 
     public void changeServerDir(String selectedPath) {

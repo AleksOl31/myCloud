@@ -1,8 +1,11 @@
 package ru.alexanna.cloud.client.model;
 
 import ru.alexanna.cloud.client.model.connection.CloudConnection;
+import ru.alexanna.cloud.model.FileMessage;
 import ru.alexanna.cloud.model.PathChangeRequestMessage;
 
+import java.io.IOException;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,8 +46,14 @@ public class ServerSideModel implements Server {
     }
 
     @Override
-    public void upload() {
-
+    public void upload(Path path) {
+        try {
+            FileMessage fileMessage = new FileMessage(path);
+            connection.sendMessage(fileMessage);
+            connection.sendFile(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override

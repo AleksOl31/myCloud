@@ -7,8 +7,20 @@ import ru.alexanna.cloud.model.CloudMessage;
 import ru.alexanna.cloud.model.FileMessage;
 import ru.alexanna.cloud.model.ListFilesMessage;
 
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
 @Slf4j
 public class ClientHandler extends SimpleChannelInboundHandler<CloudMessage> {
+
+    private Path currentDir;
+
+    @Override
+    public void channelActive(ChannelHandlerContext ctx) throws Exception {
+        currentDir = Paths.get(System.getProperty("user.home"));
+    }
+
     @Override
     protected void channelRead0(ChannelHandlerContext channelHandlerContext, CloudMessage cloudMessage) throws Exception {
         log.info("received: {}", cloudMessage);
@@ -18,6 +30,7 @@ public class ClientHandler extends SimpleChannelInboundHandler<CloudMessage> {
                 break;
             case LIST:
                 processListMessage((ListFilesMessage) cloudMessage);
+                sendFileMessage(channelHandlerContext);
                 break;
         }
     }
@@ -25,6 +38,18 @@ public class ClientHandler extends SimpleChannelInboundHandler<CloudMessage> {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
         cause.printStackTrace();
+    }
+
+    private void sendFileMessage(ChannelHandlerContext ctx) {
+        Path filePath = currentDir.resolve("teachers.db");
+        log.debug(filePath.toString());
+        try {
+            FileMessage fileMessage = new FileMessage(filePath);
+            ctx.writeAndFlush(fileMessage);
+            log.debug("Sent file message {}, size {}", fileMessage.getFileName(), fileMessage.getFileSize());
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     private void processListMessage(ListFilesMessage listFilesMessage) {
