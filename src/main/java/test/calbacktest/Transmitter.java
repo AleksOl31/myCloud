@@ -1,4 +1,4 @@
-package test;
+package test.calbacktest;
 
 import java.util.function.Consumer;
 
@@ -7,17 +7,21 @@ public class Transmitter {
     private int i = 0;
 
     public Transmitter() {
-        new Thread(() -> {
+        Thread thread = new Thread(() -> {
             while (true) {
                 try {
-                    Thread.sleep(2000);
-                    onTimerOver(String.valueOf(i));
-                    i += 1;
+
+                        Thread.sleep(2000);
+                        onTimerOver(String.valueOf(i));
+                        i += 1;
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
             }
-        }).start();
+        });
+        thread.setDaemon(true);
+        thread.start();
     }
 
     private void onTimerOver(String str) {

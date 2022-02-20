@@ -1,8 +1,10 @@
 package ru.alexanna.cloud.client.model.connection;
 
 import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
+import io.netty.handler.codec.bytes.ByteArrayEncoder;
 import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
 import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
+import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.MessageListener;
 import ru.alexanna.cloud.model.CloudMessage;
@@ -12,6 +14,7 @@ import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Date;
 
 @Slf4j
 public class CloudConnection {
@@ -57,8 +60,10 @@ public class CloudConnection {
     }
 
     public void sendMessage(CloudMessage message) {
+        log.debug(String.valueOf(new Date()));
         try {
             os.writeObject(message);
+            os.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -75,7 +80,6 @@ public class CloudConnection {
             while (size > 0) {
                 int i = fin.read(bytes);
                 bos.write(bytes, 0, i);
-                log.debug("Read {} bytes", i);
                 size -= i;
             }
             bos.flush();

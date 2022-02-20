@@ -50,7 +50,7 @@ public class ServerSideModel implements Server {
         try {
             FileMessage fileMessage = new FileMessage(path);
             connection.sendMessage(fileMessage);
-            connection.sendFile(path);
+//            connection.sendFile(path);
         } catch (IOException e) {
             e.printStackTrace();
         }

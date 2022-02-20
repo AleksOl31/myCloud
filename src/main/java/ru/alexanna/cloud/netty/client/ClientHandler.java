@@ -37,16 +37,17 @@ public class ClientHandler extends SimpleChannelInboundHandler<CloudMessage> {
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
+//        log.error(cause.getLocalizedMessage());
         cause.printStackTrace();
     }
 
     private void sendFileMessage(ChannelHandlerContext ctx) {
-        Path filePath = currentDir.resolve("teachers.db");
+        Path filePath = currentDir.resolve("man_i40.pdf");
         log.debug(filePath.toString());
         try {
             FileMessage fileMessage = new FileMessage(filePath);
             ctx.writeAndFlush(fileMessage);
-            log.debug("Sent file message {}, size {}", fileMessage.getFileName(), fileMessage.getFileSize());
+            log.debug("Sent file {}, size {}", fileMessage.getFileName(), fileMessage.getBytes().length);
         } catch (IOException e) {
             e.printStackTrace();
         }

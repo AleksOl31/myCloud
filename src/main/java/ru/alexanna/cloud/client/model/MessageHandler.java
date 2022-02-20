@@ -2,6 +2,7 @@ package ru.alexanna.cloud.client.model;
 
 import ru.alexanna.cloud.MessageListener;
 import ru.alexanna.cloud.model.CloudMessage;
+import ru.alexanna.cloud.model.FileMessage;
 import ru.alexanna.cloud.model.ListFilesMessage;
 
 public class MessageHandler implements MessageListener {
@@ -16,12 +17,16 @@ public class MessageHandler implements MessageListener {
     public void onMessageReceived(CloudMessage message) {
         switch (message.getType()) {
             case FILE:
-//                processFileMessage((FileMessage) message);
+                processFileMessage((FileMessage) message);
                 break;
             case LIST:
                 processListMessage((ListFilesMessage) message);
                 break;
         }
+    }
+
+    private void processFileMessage(FileMessage message) {
+
     }
 
     private synchronized void processListMessage(ListFilesMessage message) {

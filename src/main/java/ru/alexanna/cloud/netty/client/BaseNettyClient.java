@@ -9,6 +9,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.codec.serialization.ClassResolvers;
 import io.netty.handler.codec.serialization.ObjectDecoder;
+import io.netty.handler.codec.serialization.ObjectEncoder;
 
 public class BaseNettyClient {
 
@@ -22,13 +23,14 @@ public class BaseNettyClient {
                     @Override
                     protected void initChannel(SocketChannel socketChannel) throws Exception {
                         ChannelPipeline pipeline = socketChannel.pipeline();
-                        pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+                        // maxObjectSize - 1 Gb setup
+                        pipeline.addLast(new ObjectDecoder(1048576 * 1000, ClassResolvers.cacheDisabled(null)));
+                        pipeline.addLast(new ObjectEncoder());
                         pipeline.addLast(new ClientHandler());
                     }
                 });
             ChannelFuture future = bootstrap.connect("localhost", 8189).sync();
             future.channel().closeFuture().sync();
-
         } catch (InterruptedException e) {
             e.printStackTrace();
         } finally {

@@ -23,7 +23,8 @@ public class BaseNettyServer {
                         @Override
                         protected void initChannel(SocketChannel socketChannel) throws Exception {
                             ChannelPipeline pipeline = socketChannel.pipeline();
-                            pipeline.addLast(new ObjectDecoder(ClassResolvers.cacheDisabled(null)));
+                            // maxObjectSize - 1 Gb setup (1048576 bytes - default)
+                            pipeline.addLast(new ObjectDecoder(1048576 * 1000, ClassResolvers.cacheDisabled(null)));
                             pipeline.addLast(new ObjectEncoder());
                             pipeline.addLast(new CloudServerHandler());
                         }

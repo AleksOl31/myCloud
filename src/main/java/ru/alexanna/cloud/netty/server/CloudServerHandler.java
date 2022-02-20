@@ -4,6 +4,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.DateTimeException;
+import java.util.Date;
 
 
 import io.netty.channel.ChannelHandler;
@@ -21,7 +23,7 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
 
     @Override
     public void channelActive(ChannelHandlerContext ctx) {
-        log.debug("New client joined...");
+        log.info("New client joined from {}", ctx.channel().remoteAddress());
         currentDir = Paths.get(HOME_DIR);
         sendListFiles(ctx);
     }
@@ -39,7 +41,6 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
                 break;
             case PATH_CHANGE_REQUEST:
                 processPathChangeRequestMessage((PathChangeRequestMessage) cloudMessage, ctx);
-
                 break;
         }
     }
@@ -62,12 +63,12 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
 
     private void processFileMessage(FileMessage cloudMessage) {
         try {
-            log.debug("FileMessage received {}, size {}", cloudMessage.getFileName(), cloudMessage.getFileSize());
-//            Files.write(currentDir.resolve(cloudMessage.getFileName()), cloudMessage.getFileSize());
-            if (!Files.exists(currentDir.resolve(cloudMessage.getFileName()))) {
+            log.debug("File received: {}, size {}", cloudMessage.getFileName(), cloudMessage.getBytes().length);
+            Files.write(currentDir.resolve(cloudMessage.getFileName()), cloudMessage.getBytes());
+            /*if (!Files.exists(currentDir.resolve(cloudMessage.getFileName()))) {
                 Files.createFile(currentDir.resolve(cloudMessage.getFileName()));
-                log.debug("FileMessage bytes wrote: {}", cloudMessage.getFileSize());
-            }
+                log.debug("FileMessage bytes wrote: {}", cloudMessage.getBytes().length);
+            }*/
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -94,6 +95,7 @@ public class CloudServerHandler extends SimpleChannelInboundHandler<CloudMessage
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        cause.printStackTrace();
         ctx.close();
     }
 }
