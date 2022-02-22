@@ -8,11 +8,9 @@ import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLOutput;
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Scanner;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class ClientIO {
@@ -20,6 +18,7 @@ public class ClientIO {
     private DataInputStream is;
     private DataOutputStream os;
     private Path currentDir;
+    private final int BUFFER_SIZE = 8192;
 
 
     public ClientIO() {
@@ -40,17 +39,16 @@ public class ClientIO {
         try {
             while (true) {
                 byte serverCmd = is.readByte();
-//                log.debug("Response from server - {}", serverCmd);
                 processServerCommand(serverCmd);
             }
-        } catch (IOException /*| InterruptedException*/ e) {
+        } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
     private void processServerCommand(byte serverCmd) {
         switch (serverCmd) {
-            case CommandType.LIST:
+            case CommandType.GET_LIST:
                 processServerFilesList();
         }
     }
@@ -79,14 +77,21 @@ public class ClientIO {
         }
     }
 
-    private void sendFileToServer(Path fileName) {
-        sendMsg(CommandType.FILE);
-        try {
-            os.writeUTF(fileName.getFileName().toString());
-            long size = Files.size(fileName);
-            byte[] bytes = Files.readAllBytes(fileName);
+    private void sendFileToServer(String fileName) {
+        Path clientDir = Paths.get(System.getProperty("user.home"));
+        String file = clientDir.resolve(fileName).toAbsolutePath().toString();
+        try (FileInputStream fis = new FileInputStream(file)) {
+            byte[] bytes = new byte[BUFFER_SIZE];
+            long size = Files.size(clientDir.resolve(fileName).toAbsolutePath());
+            System.out.println(size);
+            sendMsg(CommandType.POST_FILE);
+            os.writeUTF(fileName);
             os.writeLong(size);
-            os.write(bytes);
+            while (size > 0) {
+                int numBytes = fis.read(bytes);
+                os.write(bytes, 0, numBytes);
+                size -= numBytes;
+            }
             os.flush();
 //            sendMsg(CommandType.LIST);
             log.debug(new Date().toString());
@@ -101,21 +106,24 @@ public class ClientIO {
         Scanner scanner = new Scanner(System.in);
         while (scanner.hasNextByte()) {
             byte msg = scanner.nextByte();
-            processClientCommand(client, msg);
+
+            if (msg == 21) return;
+
+            switch (msg) {
+                case CommandType.POST_FILE:
+                    log.debug(new Date().toString());
+                    client.sendFileToServer("kunce-v-tehnologiya-soloda-i-piva_f62d96649ae.pdf");
+                    break;
+                case CommandType.GET_LIST:
+                    client.sendMsg(CommandType.GET_LIST);
+                    break;
+            }
+
         }
     }
 
     private static void processClientCommand(ClientIO client, byte command) {
-        if (command == 21) return;
-        switch (command) {
-            case CommandType.FILE:
-                log.debug(new Date().toString());
-                client.sendFileToServer(client.currentDir.resolve("Tehnologiya_soloda_i_piva.pdf"));
-                break;
-            case CommandType.LIST:
-                client.sendMsg(CommandType.LIST);
-                break;
-        }
+
     }
 
 }

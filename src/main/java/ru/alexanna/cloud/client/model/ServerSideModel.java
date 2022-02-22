@@ -15,8 +15,8 @@ public class ServerSideModel implements Server {
 
     private String serverDir;
     private List<String> serverFilesList;
-
-    private final String HOST = "localhost";
+                                // TODO change IP address here
+    private final String HOST = "localhost"; /*"192.168.50.114";*/
     private final int PORT = 8189;
     private final CloudConnection connection;
     private final MessageHandler messageHandler = new MessageHandler(this);

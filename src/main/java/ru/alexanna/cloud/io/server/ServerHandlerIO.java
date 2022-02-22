@@ -5,7 +5,6 @@ import ru.alexanna.cloud.io.CommandType;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.Buffer;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -15,7 +14,7 @@ import java.util.stream.Collectors;
 @Slf4j
 public class ServerHandlerIO implements Runnable {
 
-    private static final int SIZE = 8192 * 2;
+    private static final int SIZE = 8192;
 
     private Path clientDir;
     private DataInputStream is;
@@ -59,10 +58,10 @@ public class ServerHandlerIO implements Runnable {
 
     private void processMessage(byte msg) {
         switch (msg) {
-            case CommandType.LIST:
+            case CommandType.GET_LIST:
                 sendServerFilesList();
                 break;
-            case CommandType.FILE:
+            case CommandType.POST_FILE:
                 getFileFromClient();
                 break;
         }
@@ -73,7 +72,7 @@ public class ServerHandlerIO implements Runnable {
             List<String> files = Files.list(clientDir)
                     .map(path -> path.getFileName().toString())
                     .collect(Collectors.toList());
-            os.writeByte(CommandType.LIST);
+            os.writeByte(CommandType.GET_LIST);
             os.writeInt(files.size());
             for (String file : files) {
                 os.writeUTF(file);
