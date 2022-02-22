@@ -65,6 +65,7 @@ public class ServerHandlerIO implements Runnable {
                 getFileFromClient();
                 break;
         }
+
     }
 
     private void sendServerFilesList() {
