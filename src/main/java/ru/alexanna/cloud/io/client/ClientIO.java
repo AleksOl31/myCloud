@@ -10,7 +10,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Date;
 import java.util.Scanner;
-import java.util.stream.Collectors;
 
 @Slf4j
 public class ClientIO {
@@ -68,9 +67,9 @@ public class ClientIO {
         }
     }
 
-    public void sendMsg(byte command) {
+    public void sendCommandType(byte commandType) {
         try {
-            os.write(command);
+            os.write(commandType);
 //            os.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -80,20 +79,21 @@ public class ClientIO {
     private void sendFileToServer(String fileName) {
         Path clientDir = Paths.get(System.getProperty("user.home"));
         String file = clientDir.resolve(fileName).toAbsolutePath().toString();
+
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] bytes = new byte[BUFFER_SIZE];
             long size = Files.size(clientDir.resolve(fileName).toAbsolutePath());
-            System.out.println(size);
-            sendMsg(CommandType.POST_FILE);
+            sendCommandType(CommandType.POST_FILE);
             os.writeUTF(fileName);
             os.writeLong(size);
+//            int sizePart = (int) size / BUFFER_SIZE;
+//            if (size % BUFFER_SIZE != 0) sizePart++;
             while (size > 0) {
                 int numBytes = fis.read(bytes);
                 os.write(bytes, 0, numBytes);
                 size -= numBytes;
             }
             os.flush();
-//            sendMsg(CommandType.LIST);
             log.debug(new Date().toString());
             System.out.print("Enter the command: ");
         } catch (IOException e) {
@@ -115,7 +115,7 @@ public class ClientIO {
                     client.sendFileToServer("kunce-v-tehnologiya-soloda-i-piva_f62d96649ae.pdf");
                     break;
                 case CommandType.GET_LIST:
-                    client.sendMsg(CommandType.GET_LIST);
+                    client.sendCommandType(CommandType.GET_LIST);
                     break;
             }
 

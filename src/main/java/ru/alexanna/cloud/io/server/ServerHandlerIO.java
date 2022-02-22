@@ -25,7 +25,7 @@ public class ServerHandlerIO implements Runnable {
     public ServerHandlerIO(Socket incomingSocket) {
         this.incomingSocket = incomingSocket;
         try {
-            is = new DataInputStream(incomingSocket.getInputStream());
+            is = new DataInputStream(new BufferedInputStream(incomingSocket.getInputStream()));
             os = new DataOutputStream(incomingSocket.getOutputStream());
             buf = new byte[SIZE];
             clientDir = Paths.get("data");
@@ -39,8 +39,8 @@ public class ServerHandlerIO implements Runnable {
     public void run() {
         try {
             while (true) {
+                log.debug("Start loop while of the Method run");
                 byte command = is.readByte();
-//                log.debug("{} command received", command);
                 processMessage(command);
             }
         } catch (IOException e) {
@@ -87,15 +87,21 @@ public class ServerHandlerIO implements Runnable {
     private void getFileFromClient() {
         try {
             String fileName = is.readUTF();
-            log.debug("Received file {}", fileName);
-            long size = is.readLong();
-            try (OutputStream fos = new FileOutputStream(clientDir.resolve(fileName).toString())){
-                for (int i = 0; i < (size + SIZE - 1) / SIZE; i++) {
+            log.debug("Received file: {}", fileName);
+            long fileSize = is.readLong();
+            try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(clientDir.resolve(fileName).toString()))) {
+                int count = 0;
+                long totalRead = 0;
+                while (totalRead < fileSize) {
+                    count++;
                     int readBytes = is.read(buf);
+                    totalRead += readBytes;
+                    if (count % 1_000 == 0) log.debug("{} bytes read", totalRead);
                     fos.write(buf, 0 , readBytes);
                 }
             }
         } catch (IOException e) {
+            log.error("Exception in getFileFromClient");
             e.printStackTrace();
         }
     }
