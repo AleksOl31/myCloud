@@ -27,16 +27,17 @@ public class IOStreamsTest {
                     new FileInputStream("test.dat")
             ));
             byte[] bytes = new byte[8];
-            for (int i = 0; i < 100; i++) {
+           /* for (int i = 0; i < 100; i++) {
                 System.out.print(in.read(bytes));
                 System.out.print(" ");
                 System.out.println(Arrays.toString(bytes));
-            }
+            }*/
 
-//            while (in.available() != 0) {
-//                System.out.print(in.readLong());
-//                System.out.print(" ");
-//            }
+            while (in.available() != 0) {
+                System.out.print(in.read(bytes));
+                System.out.print(" ");
+                System.out.println(bytes[7]);
+            }
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         } catch (IOException e) {

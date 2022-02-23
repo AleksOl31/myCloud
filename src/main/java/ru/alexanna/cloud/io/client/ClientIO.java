@@ -1,7 +1,7 @@
 package ru.alexanna.cloud.io.client;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.alexanna.cloud.io.CommandType;
+import ru.alexanna.cloud.io.Command;
 
 import java.io.*;
 import java.net.Socket;
@@ -24,8 +24,8 @@ public class ClientIO {
         try {
             currentDir = Paths.get(System.getProperty("user.home"));
             Socket socket = new Socket("localhost", 8189);
-            is = new DataInputStream(socket.getInputStream());
-            os = new DataOutputStream(socket.getOutputStream());
+            is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
+            os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
             readThread.start();
@@ -47,7 +47,7 @@ public class ClientIO {
 
     private void processServerCommand(byte serverCmd) {
         switch (serverCmd) {
-            case CommandType.GET_LIST:
+            case Command.GET_LIST:
                 processServerFilesList();
         }
     }
@@ -55,10 +55,8 @@ public class ClientIO {
     private void processServerFilesList() {
         try {
             int fileNum = is.readInt();
-//            List<String> serverFilesList = new ArrayList<>(fileNum);
             for (int i = 0; i < fileNum; i++) {
                 String fileName = is.readUTF();
-//                serverFilesList.add(is.readUTF());
                 log.info(fileName);
             }
             System.out.print("Enter the command: ");
@@ -67,10 +65,10 @@ public class ClientIO {
         }
     }
 
-    public void sendCommandType(byte commandType) {
+    public void sendCommandType(byte commandType, boolean autoFlush) {
         try {
             os.write(commandType);
-//            os.flush();
+            if (autoFlush) os.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -83,47 +81,46 @@ public class ClientIO {
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] bytes = new byte[BUFFER_SIZE];
             long size = Files.size(clientDir.resolve(fileName).toAbsolutePath());
-            sendCommandType(CommandType.POST_FILE);
+            sendCommandType(Command.POST_FILE, false);
             os.writeUTF(fileName);
             os.writeLong(size);
-//            int sizePart = (int) size / BUFFER_SIZE;
-//            if (size % BUFFER_SIZE != 0) sizePart++;
-            while (size > 0) {
+            int percentageSent = 0;
+            long bytesTransferred = 0;
+            while (bytesTransferred < size) {
                 int numBytes = fis.read(bytes);
                 os.write(bytes, 0, numBytes);
-                size -= numBytes;
+                bytesTransferred += numBytes;
+                percentageSent = (int) (bytesTransferred * 100 / size);
             }
             os.flush();
-            log.debug(new Date().toString());
             System.out.print("Enter the command: ");
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
 
+
+    // Test for commit on GitHub 23.02.22
     public static void main(String[] args) {
         ClientIO client = new ClientIO();
         Scanner scanner = new Scanner(System.in);
+
         while (scanner.hasNextByte()) {
             byte msg = scanner.nextByte();
 
             if (msg == 21) return;
 
             switch (msg) {
-                case CommandType.POST_FILE:
+                case Command.POST_FILE:
                     log.debug(new Date().toString());
-                    client.sendFileToServer("kunce-v-tehnologiya-soloda-i-piva_f62d96649ae.pdf");
+                    client.sendFileToServer("!!!Big_file_for_test_transfer");
                     break;
-                case CommandType.GET_LIST:
-                    client.sendCommandType(CommandType.GET_LIST);
+                case Command.GET_LIST:
+                    client.sendCommandType(Command.GET_LIST, true);
                     break;
             }
 
         }
-    }
-
-    private static void processClientCommand(ClientIO client, byte command) {
-
     }
 
 }
