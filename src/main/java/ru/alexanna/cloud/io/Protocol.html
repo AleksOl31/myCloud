@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Protocol</title>
+</head>
+<body>
+<h2>Команды клиента</h2>
+
+<h3>1. Запрос с сервера списка текущей директории</h3>
+<p></p>1) Отправка типа команды (write(byte)) - Command.LIST = 31
+
+<h3>2. Upload file</h3>
+<p>1) Отправка типа команды (write(byte)) - Command.POST_FILE = 32</p>
+<p>2) Отправка имени файла (writeUTF)</p>
+<p>3) Отправка размера файла (writeLong(size)</p>
+<p>4) Отправка файла байтовыми массивами (write(byte[] b, int off, int len) по 8192 байт</p>
+
+<h3>3. Download file</h3>
+<p>1) Отправка типа команды (write(byte)) - Command.GET_FILE = 33</p>
+
+<h3>4. Запрос на изменение текущей директории</h3>
+<p>1) Отправка типа команды (write(byte)) - Command.CHANGE_PATH_REQUEST = 34</p>
+</body>
+</html>

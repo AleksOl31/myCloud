@@ -23,7 +23,9 @@ public class ClientIO {
     public ClientIO() {
         try {
             currentDir = Paths.get(System.getProperty("user.home"));
-            Socket socket = new Socket("localhost", 8189);
+//            "192.168.50.114" - home address
+//            "10.70.29.158" - work address
+            Socket socket = new Socket("10.70.29.158", 8189);
             is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             Thread readThread = new Thread(this::readLoop);
@@ -86,11 +88,15 @@ public class ClientIO {
             os.writeLong(size);
             int percentageSent = 0;
             long bytesTransferred = 0;
+            int count = 0;
             while (bytesTransferred < size) {
+                count++;
                 int numBytes = fis.read(bytes);
                 os.write(bytes, 0, numBytes);
                 bytesTransferred += numBytes;
                 percentageSent = (int) (bytesTransferred * 100 / size);
+                if (count % 10_000 == 0 || bytesTransferred == size)
+                    log.debug("{} bytes wrote from {}. Current pack {} or {} percent", bytesTransferred, size, bytes.length, percentageSent);
             }
             os.flush();
             System.out.print("Enter the command: ");
