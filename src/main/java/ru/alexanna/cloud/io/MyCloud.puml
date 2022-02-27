@@ -1,0 +1,60 @@
+@startuml
+package "ru.alexanna.cloud.io.server" {
+class ClientConnectionHandler implements Runnable
+CloudServer *-- Runnable
+AuthenticationService --* CloudServer
+ClientConnectionHandler *-- ClientMsgProcessor
+ru.alexanna.cloud.io.general.FileCommand <.. ClientMsgProcessor
+
+}
+
+class ClientMsgProcessor {
+- FileCommand command
+}
+
+class CloudServer {
+- AuthenticationService authService
+- Runnable clientConnectionHandler
+}
+
+class ClientConnectionHandler {
+- InputStream inStream
+- OutputStream outStream
+- Socket incomingSocket
+- ClientMsgProcessor msgProcessor
++ void run()
+- void processMessage(byte msg)
+}
+
+package "ru.alexanna.cloud.io.general" #DDDDDD {
+class FileCommandExecutor implements FileCommand
+}
+
+interface ru.alexanna.cloud.io.general.FileCommand {
++ {static} GET_LIST=31
++ {static} POST_FILE = 32
++ {static} GET_FILE = 33
++ {static} CHANGE_PATH_REQUEST = 34
++ {static} GET_OK = 41
++ {abstract} getCurrentFilesList()
++ {abstract} upload()
++ {abstract} download()
++ {abstract} changeCurrentDir()
+'+ {abstract} copy()
+'+ {abstract} delete()
+'+ {abstract} move()
+}
+
+class ru.alexanna.cloud.io.general.FileCommandExecutor {
+
+}
+
+package "ru.alexanna.cloud.io.client" #22AA24 {
+CloudClient ..> ru.alexanna.cloud.io.general.FileCommand
+}
+
+class CloudClient {
+- Socket socket
+}
+
+@enduml

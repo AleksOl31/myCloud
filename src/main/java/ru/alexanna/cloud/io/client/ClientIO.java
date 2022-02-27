@@ -1,7 +1,7 @@
 package ru.alexanna.cloud.io.client;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.alexanna.cloud.io.Command;
+import ru.alexanna.cloud.io.general.FileCommand;
 
 import java.io.*;
 import java.net.Socket;
@@ -25,7 +25,7 @@ public class ClientIO {
             currentDir = Paths.get(System.getProperty("user.home"));
 //            "192.168.50.114" - home address
 //            "10.70.29.158" - work address
-            Socket socket = new Socket("10.70.29.158", 8189);
+            Socket socket = new Socket("192.168.50.114", 8189);
             is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             Thread readThread = new Thread(this::readLoop);
@@ -49,9 +49,25 @@ public class ClientIO {
 
     private void processServerCommand(byte serverCmd) {
         switch (serverCmd) {
-            case Command.GET_LIST:
+            case FileCommand.GET_LIST:
                 processServerFilesList();
+                break;
+            case FileCommand.GET_OK:
+                processCetOk();
+                break;
+            case FileCommand.GET_FAILED:
+                processGetFailed();
         }
+    }
+
+    private void processCetOk() {
+        log.debug("File received at {}", new Date());
+        System.out.print("Enter the command: ");
+    }
+
+    private void processGetFailed() {
+        log.error("Failed to get file");
+        System.out.print("Enter the command: ");
     }
 
     private void processServerFilesList() {
@@ -79,14 +95,14 @@ public class ClientIO {
     private void sendFileToServer(String fileName) {
         Path clientDir = Paths.get(System.getProperty("user.home"));
         String file = clientDir.resolve(fileName).toAbsolutePath().toString();
-
+        log.debug("Start file transfer at {}", new Date());
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] bytes = new byte[BUFFER_SIZE];
             long size = Files.size(clientDir.resolve(fileName).toAbsolutePath());
-            sendCommandType(Command.POST_FILE, false);
+            sendCommandType(FileCommand.POST_FILE, false);
             os.writeUTF(fileName);
             os.writeLong(size);
-            int percentageSent = 0;
+            int percentageSent;
             long bytesTransferred = 0;
             int count = 0;
             while (bytesTransferred < size) {
@@ -99,7 +115,7 @@ public class ClientIO {
                     log.debug("{} bytes wrote from {}. Current pack {} or {} percent", bytesTransferred, size, bytes.length, percentageSent);
             }
             os.flush();
-            System.out.print("Enter the command: ");
+
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -117,12 +133,11 @@ public class ClientIO {
             if (msg == 21) return;
 
             switch (msg) {
-                case Command.POST_FILE:
-                    log.debug(new Date().toString());
+                case FileCommand.POST_FILE:
                     client.sendFileToServer("!!!Big_file_for_test_transfer");
                     break;
-                case Command.GET_LIST:
-                    client.sendCommandType(Command.GET_LIST, true);
+                case FileCommand.GET_LIST:
+                    client.sendCommandType(FileCommand.GET_LIST, true);
                     break;
             }
 

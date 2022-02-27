@@ -1,7 +1,7 @@
 package ru.alexanna.cloud.io.server;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.alexanna.cloud.io.Command;
+import ru.alexanna.cloud.io.general.FileCommand;
 
 import java.io.*;
 import java.net.Socket;
@@ -13,17 +13,19 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class ServerHandlerIO implements Runnable {
+public class ClientConnectionHandler implements Runnable {
 
     private static final int BUFFER_SIZE = 8192;
 
     private Path clientDir;
     private DataInputStream is;
     private DataOutputStream os;
-    private Socket incomingSocket;
+    private final Socket incomingSocket;
+    private final ClientMsgProcessor msgProcessor;
 
-    public ServerHandlerIO(Socket incomingSocket) {
+    public ClientConnectionHandler(Socket incomingSocket) {
         this.incomingSocket = incomingSocket;
+        this.msgProcessor = new ClientMsgProcessor();
         try {
             is = new DataInputStream(new BufferedInputStream(incomingSocket.getInputStream()));
             os = new DataOutputStream(new BufferedOutputStream(incomingSocket.getOutputStream()));
@@ -58,10 +60,10 @@ public class ServerHandlerIO implements Runnable {
 
     private void processMessage(byte msg) {
         switch (msg) {
-            case Command.GET_LIST:
+            case FileCommand.GET_LIST:
                 sendServerFilesList();
                 break;
-            case Command.POST_FILE:
+            case FileCommand.POST_FILE:
                 getFileFromClient();
                 break;
         }
@@ -73,7 +75,7 @@ public class ServerHandlerIO implements Runnable {
             List<String> files = Files.list(clientDir)
                     .map(path -> path.getFileName().toString())
                     .collect(Collectors.toList());
-            os.writeByte(Command.GET_LIST);
+            os.writeByte(FileCommand.GET_LIST);
             os.writeInt(files.size());
             for (String file : files) {
                 os.writeUTF(file);
@@ -85,7 +87,16 @@ public class ServerHandlerIO implements Runnable {
         }
     }
 
-    // Test for commit on GitHub 23.02.22
+    private void sendGetOk() {
+        try {
+            os.writeByte(FileCommand.GET_OK);
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    // Commit on GitHub 27.02.22
     private void getFileFromClient() {
         try {
             log.debug("Start file transfer {}", new Date());
@@ -101,9 +112,10 @@ public class ServerHandlerIO implements Runnable {
                     int readBytes = is.read(buf);
                     totalRead += readBytes;
 //                    if (countIterations % 10_000 == 0) log.debug("{} bytes read", totalRead);
-                    fos.write(buf, 0 , readBytes);
+                    fos.write(buf, 0, readBytes);
                 }
                 log.debug("Stop file transfer {}", new Date());
+                sendGetOk();
             }
         } catch (Exception e) {
             log.error("Exception in getFileFromClient");
