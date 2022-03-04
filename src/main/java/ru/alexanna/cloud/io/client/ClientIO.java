@@ -25,7 +25,7 @@ public class ClientIO {
             currentDir = Paths.get(System.getProperty("user.home"));
 //            "192.168.50.114" - home address
 //            "10.70.29.158" - work address
-            Socket socket = new Socket("192.168.50.114", 8189);
+            Socket socket = new Socket("localhost", 8189);
             is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
             Thread readThread = new Thread(this::readLoop);
@@ -57,6 +57,9 @@ public class ClientIO {
                 break;
             case FileCommand.GET_FAILED:
                 processGetFailed();
+                break;
+            case FileCommand.GET_BAD_CRED:
+                log.error("Bad credentials");
         }
     }
 
@@ -122,6 +125,18 @@ public class ClientIO {
     }
 
 
+    private void sendCredentials() {
+        try {
+            os.writeByte(FileCommand.AUTH);
+            os.writeUTF("test_User");
+            os.writeUTF("password");
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+
     // Test for commit on GitHub 23.02.22
     public static void main(String[] args) {
         ClientIO client = new ClientIO();
@@ -133,6 +148,9 @@ public class ClientIO {
             if (msg == 21) return;
 
             switch (msg) {
+                case FileCommand.AUTH:
+                    client.sendCredentials();
+                    break;
                 case FileCommand.POST_FILE:
                     client.sendFileToServer("!!!Big_file_for_test_transfer");
                     break;

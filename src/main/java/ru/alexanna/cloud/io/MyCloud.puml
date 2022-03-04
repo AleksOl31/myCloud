@@ -1,18 +1,19 @@
 @startuml
 package "ru.alexanna.cloud.io.server" {
 class ClientConnectionHandler implements Runnable
-CloudServer *-- Runnable
-AuthenticationService --* CloudServer
+ServerIO o-- Runnable
+AuthenticationService --* ServerIO
 ClientConnectionHandler *-- ClientMsgProcessor
+ClientConnectionHandler <-- ClientMsgProcessor
 ru.alexanna.cloud.io.general.FileCommand <.. ClientMsgProcessor
 
 }
 
 class ClientMsgProcessor {
-- FileCommand command
+- FileCommand fileCommander
 }
 
-class CloudServer {
+class ServerIO {
 - AuthenticationService authService
 - Runnable clientConnectionHandler
 }
@@ -23,7 +24,6 @@ class ClientConnectionHandler {
 - Socket incomingSocket
 - ClientMsgProcessor msgProcessor
 + void run()
-- void processMessage(byte msg)
 }
 
 package "ru.alexanna.cloud.io.general" #DDDDDD {
@@ -36,7 +36,7 @@ interface ru.alexanna.cloud.io.general.FileCommand {
 + {static} GET_FILE = 33
 + {static} CHANGE_PATH_REQUEST = 34
 + {static} GET_OK = 41
-+ {abstract} getCurrentFilesList()
++ {abstract} List<String> getCurrentFilesList()
 + {abstract} upload()
 + {abstract} download()
 + {abstract} changeCurrentDir()
