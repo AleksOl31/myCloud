@@ -2,7 +2,7 @@
 package "ru.alexanna.cloud.io.server" {
 class ClientConnectionHandler implements Runnable
 ServerIO o-- Runnable
-AuthenticationService --* ServerIO
+AuthenticationService <-- ClientMsgProcessor
 ClientConnectionHandler *-- ClientMsgProcessor
 ClientConnectionHandler <-- ClientMsgProcessor
 ru.alexanna.cloud.io.general.FileCommand <.. ClientMsgProcessor
@@ -14,7 +14,6 @@ class ClientMsgProcessor {
 }
 
 class ServerIO {
-- AuthenticationService authService
 - Runnable clientConnectionHandler
 }
 

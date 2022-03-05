@@ -11,7 +11,7 @@ public class ClientConnectionHandler implements Runnable {
     private DataInputStream is;
     private DataOutputStream os;
     private final Socket incomingSocket;
-    private ClientMsgProcessor msgProcessor;
+    private final ClientMsgProcessor msgProcessor;
 
     public ClientConnectionHandler(Socket incomingSocket) {
         this.incomingSocket = incomingSocket;
@@ -32,7 +32,8 @@ public class ClientConnectionHandler implements Runnable {
                 msgProcessor.commandProcessing(command);
             }
         } catch (IOException e) {
-            log.debug("Client {} disconnected...", incomingSocket.getInetAddress());
+            log.debug("Client {}, with username `{}` disconnected. Exception: {}",
+                    incomingSocket.getInetAddress(), msgProcessor.getUserName(), e.getMessage());
         } finally {
             closeConnection();
         }

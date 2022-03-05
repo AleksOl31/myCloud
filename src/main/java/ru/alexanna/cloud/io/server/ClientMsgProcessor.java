@@ -9,41 +9,45 @@ import java.util.List;
 @Slf4j
 public class ClientMsgProcessor {
 
-    private ClientConnectionHandler handler;
+    private final ClientConnectionHandler handler;
     private final DataInputStream is;
     private final DataOutputStream os;
     private final FileCommand fileCommander;
+    private boolean isAuthenticated = false;
+    private String userName;
 
     public ClientMsgProcessor(ClientConnectionHandler handler, FileCommand fileCommander) {
-       is = handler.getIs();
-       os = handler.getOs();
-       this.handler = handler;
-       this.fileCommander = fileCommander;
+        is = handler.getIs();
+        os = handler.getOs();
+        this.handler = handler;
+        this.fileCommander = fileCommander;
     }
 
-    public void commandProcessing(byte command) {
-        switch (command) {
-            case FileCommand.AUTH:
-                doAuthentication();
-                break;
-            case FileCommand.GET_LIST:
-                sendServerFilesList();
-                break;
-            case FileCommand.POST_FILE:
-                getFileFromClient();
-                sendCommand(FileCommand.GET_OK);
-                break;
-        }
+    public void commandProcessing(byte command) throws IOException {
+        if (isAuthenticated)
+            switch (command) {
+                case FileCommand.GET_FILES_LIST:
+                    sendServerFilesList();
+                    break;
+                case FileCommand.POST_FILE:
+                    getFileFromClient();
+                    sendCommand(FileCommand.GET_OK);
+                    break;
+            }
+        else if (command == FileCommand.DO_AUTH) doAuthentication();
+        else throw new IOException("Unexpected data from client");
     }
 
     private void doAuthentication() {
         AuthenticationService authService = new AuthenticationService();
         try {
-            String userName = is.readUTF();
-            String password = is.readUTF();
-            if (authService.findUser(userName, password)) {
+            String inboundMsg = is.readUTF();
+            String[] credentials = inboundMsg.split("\\s");
+            isAuthenticated = authService.findUser(credentials[0], credentials[1]);
+            if (isAuthenticated) {
+                this.userName = credentials[0];
                 fileCommander.setHomeDir(userName);
-                sendServerFilesList();
+                sendCommand(FileCommand.AUTH_OK);
             } else {
                 sendCommand(FileCommand.GET_BAD_CRED);
             }
@@ -55,7 +59,7 @@ public class ClientMsgProcessor {
     private void sendServerFilesList() {
         try {
             List<String> files = fileCommander.getCurrentFilesList();
-            os.writeByte(FileCommand.GET_LIST);
+            os.writeByte(FileCommand.GET_FILES_LIST);
             os.writeInt(files.size());
             for (String file : files) {
                 os.writeUTF(file);
@@ -86,6 +90,10 @@ public class ClientMsgProcessor {
             log.error("Exception in getFileFromClient");
             e.printStackTrace();
         }
+    }
+
+    public String getUserName() {
+        return userName;
     }
 
 }

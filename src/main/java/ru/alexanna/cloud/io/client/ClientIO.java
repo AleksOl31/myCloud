@@ -24,7 +24,7 @@ public class ClientIO {
         try {
             currentDir = Paths.get(System.getProperty("user.home"));
 //            "192.168.50.114" - home address
-//            "10.70.29.158" - work address
+//            "10.70.29.158" - work address   "localhost"
             Socket socket = new Socket("localhost", 8189);
             is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
@@ -40,6 +40,7 @@ public class ClientIO {
         try {
             while (true) {
                 byte serverCmd = is.readByte();
+                log.debug("Server message {}", serverCmd);
                 processServerCommand(serverCmd);
             }
         } catch (IOException e) {
@@ -49,7 +50,7 @@ public class ClientIO {
 
     private void processServerCommand(byte serverCmd) {
         switch (serverCmd) {
-            case FileCommand.GET_LIST:
+            case FileCommand.GET_FILES_LIST:
                 processServerFilesList();
                 break;
             case FileCommand.GET_OK:
@@ -127,9 +128,9 @@ public class ClientIO {
 
     private void sendCredentials() {
         try {
-            os.writeByte(FileCommand.AUTH);
-            os.writeUTF("test_User");
-            os.writeUTF("password");
+            os.writeByte(FileCommand.DO_AUTH);
+            os.writeUTF("test_User !@#$$%^&*()_-+?||}{{}");
+//            os.writeUTF("password");
             os.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -148,14 +149,14 @@ public class ClientIO {
             if (msg == 21) return;
 
             switch (msg) {
-                case FileCommand.AUTH:
+                case FileCommand.DO_AUTH:
                     client.sendCredentials();
                     break;
                 case FileCommand.POST_FILE:
                     client.sendFileToServer("!!!Big_file_for_test_transfer");
                     break;
-                case FileCommand.GET_LIST:
-                    client.sendCommandType(FileCommand.GET_LIST, true);
+                case FileCommand.GET_FILES_LIST:
+                    client.sendCommandType(FileCommand.GET_FILES_LIST, true);
                     break;
             }
 
