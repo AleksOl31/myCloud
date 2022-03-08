@@ -2,9 +2,9 @@
 package "ru.alexanna.cloud.io.server" {
 class ClientConnectionHandler implements Runnable
 ServerIO o-- Runnable
-AuthenticationService <-- ClientMsgProcessor
+AuthenticationService <.. ClientConnectionHandler
 ClientConnectionHandler *-- ClientMsgProcessor
-ClientConnectionHandler <-- ClientMsgProcessor
+ClientConnectionHandler <.. ClientMsgProcessor
 ru.alexanna.cloud.io.general.FileCommand <.. ClientMsgProcessor
 
 }
@@ -25,6 +25,10 @@ class ClientConnectionHandler {
 + void run()
 }
 
+class AuthenticationService {
++ authenticateUser(userName, password) : boolean
+}
+
 package "ru.alexanna.cloud.io.general" #DDDDDD {
 class FileCommandExecutor implements FileCommand
 }
@@ -35,9 +39,11 @@ interface ru.alexanna.cloud.io.general.FileCommand {
 + {static} GET_FILE = 33
 + {static} CHANGE_PATH_REQUEST = 34
 + {static} GET_OK = 41
-+ {abstract} List<String> getCurrentFilesList()
-+ {abstract} upload()
-+ {abstract} download()
++ {abstract} getCurrentFilesList() : List<String>
+'+ {abstract} upload()
+'+ {abstract} download()
++ {abstract} setHomeDir(String userHomeDir)
++ {abstract} writeFile(fileName, fileSize, inputStream)
 + {abstract} changeCurrentDir()
 '+ {abstract} copy()
 '+ {abstract} delete()

@@ -13,7 +13,8 @@ public interface FileCommand {
     byte GET_FILE = 33;
     byte CHANGE_PATH_REQUEST = 34;
     byte GET_OK = 0;
-    byte GET_FAILED = 113;
+    byte GET_FAILED = 23;
+    byte QUIT = 100;
 
     void upload();
     void download();
