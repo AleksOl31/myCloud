@@ -15,10 +15,12 @@ public interface FileCommand {
     byte GET_OK = 0;
     byte GET_FAILED = 23;
     byte QUIT = 100;
+    byte BYE = 101;
 
     void upload();
     void download();
-    void setHomeDir(String userHomeDir);
+    void initHomeDir(String userHomeDir);
+    String getCurrentDir();
     List<String> getCurrentFilesList() throws IOException;
     void writeFile(String fileName, long fileSize, InputStream is) throws IOException;
 }

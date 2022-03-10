@@ -13,7 +13,8 @@ public class FileCommandExecutor implements FileCommand {
     private Path homeDir;
     private Path currentDir;
 
-    public FileCommandExecutor() {}
+    public FileCommandExecutor() {
+    }
 
     public FileCommandExecutor(String userHomeDir) {
         this.homeDir = cloudDataDir.resolve(userHomeDir);
@@ -31,9 +32,21 @@ public class FileCommandExecutor implements FileCommand {
     }
 
     @Override
-    public void setHomeDir(String userHomeDir) {
-        this.homeDir = cloudDataDir.resolve(userHomeDir);
-        currentDir = homeDir;
+    public void initHomeDir(String userHomeDir) {
+        homeDir = cloudDataDir.resolve(userHomeDir);
+        try {
+            if (Files.notExists(homeDir)) {
+                Files.createDirectory(homeDir);
+            }
+            currentDir = homeDir;
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public String getCurrentDir() {
+        return currentDir.toString();
     }
 
     @Override

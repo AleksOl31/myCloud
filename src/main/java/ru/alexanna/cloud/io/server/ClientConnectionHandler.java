@@ -12,9 +12,11 @@ public class ClientConnectionHandler implements Runnable {
     private DataOutputStream os;
     private final Socket incomingSocket;
     private final ClientMsgProcessor msgProcessor;
+    private boolean isConnected;
 
     public ClientConnectionHandler(Socket incomingSocket) {
         this.incomingSocket = incomingSocket;
+        isConnected = true;
         try {
             is = new DataInputStream(new BufferedInputStream(incomingSocket.getInputStream()));
             os = new DataOutputStream(new BufferedOutputStream(incomingSocket.getOutputStream()));
@@ -27,14 +29,15 @@ public class ClientConnectionHandler implements Runnable {
     @Override
     public void run() {
         try {
-            while (true) {
+            while (isConnected) {
                 byte command = is.readByte();
                 msgProcessor.commandProcessing(command);
             }
         } catch (IOException e) {
-            log.debug("Client {}, with username `{}` disconnected. Exception: {}",
-                    incomingSocket.getInetAddress(), msgProcessor.getUserName(), e.getMessage());
+            log.error("Exception: {}", e.getMessage());
         } finally {
+            log.debug("Client {}, with username `{}` disconnected.",
+                    incomingSocket.getInetAddress(), msgProcessor.getUserName());
             closeConnection();
         }
     }
@@ -59,5 +62,9 @@ public class ClientConnectionHandler implements Runnable {
 
     public DataInputStream getIs() {
         return is;
+    }
+
+    public void logout() {
+        isConnected = false;
     }
 }

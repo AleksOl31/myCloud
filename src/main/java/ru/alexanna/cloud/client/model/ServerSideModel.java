@@ -49,7 +49,7 @@ public class ServerSideModel implements Server {
     public void upload(Path path) {
         try {
             FileMessage fileMessage = new FileMessage(path);
-            connection.sendMessage(fileMessage);
+//            connection.sendMessage(fileMessage);
 //            connection.sendFile(path);
         } catch (IOException e) {
             e.printStackTrace();
@@ -63,7 +63,7 @@ public class ServerSideModel implements Server {
 
     @Override
     public void changeCurrentDir(String selectedPath) {
-        connection.sendMessage(new PathChangeRequestMessage(selectedPath));
+//        connection.sendMessage(new PathChangeRequestMessage(selectedPath));
     }
 
     public String getServerDir() {

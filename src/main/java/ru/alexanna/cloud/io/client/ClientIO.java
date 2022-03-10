@@ -18,6 +18,7 @@ public class ClientIO {
     private DataOutputStream os;
     private Path currentDir;
     private final int BUFFER_SIZE = 8192;
+    private boolean isConnected = false;
 
 
     public ClientIO() {
@@ -28,6 +29,7 @@ public class ClientIO {
             Socket socket = new Socket("localhost", 8189);
             is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            isConnected = true;
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
             readThread.start();
@@ -38,13 +40,16 @@ public class ClientIO {
 
     private void readLoop() {
         try {
-            while (true) {
+            while (isConnected) {
                 byte serverCmd = is.readByte();
                 log.debug("Server message {}", serverCmd);
                 processServerCommand(serverCmd);
             }
         } catch (IOException e) {
             e.printStackTrace();
+        }
+        finally {
+            log.debug("Thread completed...");
         }
     }
 
@@ -61,6 +66,10 @@ public class ClientIO {
                 break;
             case FileCommand.GET_BAD_CRED:
                 log.error("Bad credentials");
+                break;
+            case FileCommand.BYE:
+                isConnected = false;
+                break;
         }
     }
 
@@ -76,6 +85,8 @@ public class ClientIO {
 
     private void processServerFilesList() {
         try {
+            String currentDir = is.readUTF();
+            log.info("Path to the current server directory: {}", currentDir);
             int fileNum = is.readInt();
             for (int i = 0; i < fileNum; i++) {
                 String fileName = is.readUTF();
@@ -129,8 +140,7 @@ public class ClientIO {
     private void sendCredentials() {
         try {
             os.writeByte(FileCommand.DO_AUTH);
-            os.writeUTF("test_User !@#$$%^&*()_-+?||}{{}");
-//            os.writeUTF("password");
+            os.writeUTF("test_User_2 !@#$$%^&*()_-+?||}{{}");
             os.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -138,7 +148,6 @@ public class ClientIO {
     }
 
 
-    // Test for commit on GitHub 23.02.22
     public static void main(String[] args) {
         ClientIO client = new ClientIO();
         Scanner scanner = new Scanner(System.in);
@@ -155,9 +164,13 @@ public class ClientIO {
                 case FileCommand.POST_FILE:
                     client.sendFileToServer("!!!Big_file_for_test_transfer");
                     break;
-                case FileCommand.GET_FILES_LIST:
+                /*case FileCommand.GET_FILES_LIST:
                     client.sendCommandType(FileCommand.GET_FILES_LIST, true);
-                    break;
+                    break;*/
+                /*case FileCommand.QUIT:
+                    client.sendCommandType(FileCommand.QUIT, true);
+                    break;*/
+                default: client.sendCommandType(msg, true);
             }
 
         }

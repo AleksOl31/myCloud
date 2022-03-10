@@ -33,26 +33,26 @@ public class ClientMsgProcessor {
                     getFileFromClient();
                     sendCommand(FileCommand.GET_OK);
                     break;
+                case FileCommand.QUIT:
+                    sendCommand(FileCommand.BYE);
+                    handler.logout();
+                    break;
             }
         else if (command == FileCommand.DO_AUTH) doAuthentication();
         else throw new IOException("Unexpected data from client");
     }
 
-    private void doAuthentication() {
+    private void doAuthentication() throws IOException {
         AuthenticationService authService = new AuthenticationService();
-        try {
-            String inboundMsg = is.readUTF();
-            String[] credentials = inboundMsg.split("\\s");
-            isAuthenticated = authService.findUser(credentials[0], credentials[1]);
-            if (isAuthenticated) {
-                this.userName = credentials[0];
-                fileCommander.setHomeDir(userName);
-                sendCommand(FileCommand.AUTH_OK);
-            } else {
-                sendCommand(FileCommand.GET_BAD_CRED);
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+        String inboundMsg = is.readUTF();
+        String[] credentials = inboundMsg.split("\\s");
+        isAuthenticated = authService.findUser(credentials[0], credentials[1]);
+        if (isAuthenticated) {
+            this.userName = credentials[0];
+            fileCommander.initHomeDir(userName);
+            sendCommand(FileCommand.AUTH_OK);
+        } else {
+            sendCommand(FileCommand.GET_BAD_CRED);
         }
     }
 
@@ -60,6 +60,7 @@ public class ClientMsgProcessor {
         try {
             List<String> files = fileCommander.getCurrentFilesList();
             os.writeByte(FileCommand.GET_FILES_LIST);
+            os.writeUTF(fileCommander.getCurrentDir());
             os.writeInt(files.size());
             for (String file : files) {
                 os.writeUTF(file);

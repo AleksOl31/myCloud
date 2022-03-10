@@ -19,16 +19,18 @@ import java.util.Date;
 @Slf4j
 public class CloudConnection {
 
-    private ObjectDecoderInputStream is;
-    private ObjectEncoderOutputStream os;
+    /*private ObjectDecoderInputStream is;
+    private ObjectEncoderOutputStream os;*/
+    private DataInputStream is;
+    private DataOutputStream os;
     private MessageListener listener;
     private Socket socket;
 
     public CloudConnection(String host, int port) {
         try {
             socket = new Socket(host, port);
-            os = new ObjectEncoderOutputStream(socket.getOutputStream());
-            is = new ObjectDecoderInputStream(socket.getInputStream());
+            os = new DataOutputStream(new BufferedOutputStream(socket.getOutputStream()));
+            is = new DataInputStream(new BufferedInputStream(socket.getInputStream()));
             log.debug("Network created... Output stream size {}", os.size());
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
@@ -45,9 +47,9 @@ public class CloudConnection {
         try {
             while (true) {
                 log.debug("Waiting for a message from the server...");
-                CloudMessage message = (CloudMessage) is.readObject();
+                byte message = is.readByte();
                 log.debug("Message received: {}", message);
-                listener.onMessageReceived(message);
+//                listener.onMessageReceived(message);
             }
         } catch (Exception e) {
             log.error("Error reading data from the server.");
@@ -59,10 +61,10 @@ public class CloudConnection {
         this.listener = listener;
     }
 
-    public void sendMessage(CloudMessage message) {
+    public void sendMessage(byte message) {
         log.debug(String.valueOf(new Date()));
         try {
-            os.writeObject(message);
+            os.writeByte(message);
             os.flush();
         } catch (IOException e) {
             e.printStackTrace();
