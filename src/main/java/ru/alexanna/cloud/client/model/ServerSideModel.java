@@ -1,9 +1,9 @@
 package ru.alexanna.cloud.client.model;
 
 import ru.alexanna.cloud.client.model.connection.CloudConnection;
-import ru.alexanna.cloud.model.FileMessage;
-import ru.alexanna.cloud.model.PathChangeRequestMessage;
+import ru.alexanna.cloud.io.general.FileCommand;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -19,13 +19,11 @@ public class ServerSideModel implements Server {
     private final String HOST = "localhost"; /*"192.168.50.114";*/
     private final int PORT = 8189;
     private final CloudConnection connection;
-    private final MessageHandler messageHandler = new MessageHandler(this);
 
     public ServerSideModel() {
         observers = new ArrayList<>();
-
         connection = new CloudConnection(HOST, PORT);
-        connection.addMessageListener(messageHandler);
+        connection.addMessageListener(new ByteMessageHandler(this));
     }
 
     @Override
@@ -47,13 +45,7 @@ public class ServerSideModel implements Server {
 
     @Override
     public void upload(Path path) {
-        try {
-            FileMessage fileMessage = new FileMessage(path);
-//            connection.sendMessage(fileMessage);
-//            connection.sendFile(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+
     }
 
     @Override
@@ -64,6 +56,18 @@ public class ServerSideModel implements Server {
     @Override
     public void changeCurrentDir(String selectedPath) {
 //        connection.sendMessage(new PathChangeRequestMessage(selectedPath));
+    }
+
+    @Override
+    public void doAuthenticate(String username, String password) {
+        DataOutputStream os = connection.getOs();
+        try {
+            os.writeByte(FileCommand.DO_AUTH);
+            os.writeUTF(username + " " + password);
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public String getServerDir() {
@@ -82,4 +86,7 @@ public class ServerSideModel implements Server {
         this.serverFilesList = serverFilesList;
     }
 
+    public CloudConnection getConnection() {
+        return connection;
+    }
 }

@@ -7,8 +7,6 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import javafx.concurrent.Service;
-import javafx.concurrent.Task;
 import ru.alexanna.cloud.client.model.ClientSideModel;
 import ru.alexanna.cloud.client.model.Observer;
 import ru.alexanna.cloud.client.model.ServerSideModel;
@@ -131,6 +129,10 @@ public class ClientViewModel implements Observer {
 
     public void goToTopServerFolder() {
         serverSideModel.changeCurrentDir("..");
+    }
+
+    public void performAuthenticate() {
+        serverSideModel.doAuthenticate("test_User", "!@#$$%^&*()_-+?||}{{}");
     }
 }
 

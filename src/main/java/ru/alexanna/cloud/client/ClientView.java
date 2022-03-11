@@ -26,6 +26,8 @@ public class ClientView implements Initializable/*, MessageListener*/ {
     public void initialize(URL location, ResourceBundle resources) {
             bindViewModel();
             initMouseListeners();
+
+            viewModel.performAuthenticate();
     }
 
     private void bindViewModel() {
@@ -45,7 +47,6 @@ public class ClientView implements Initializable/*, MessageListener*/ {
 
         serverView.setOnMouseClicked(e -> {
             if (e.getClickCount() == 2) {
-                // todo Home Work
                 viewModel.changeServerDir(serverView.getSelectionModel().getSelectedItem());
             }
         });

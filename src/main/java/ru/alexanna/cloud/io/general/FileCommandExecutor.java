@@ -46,7 +46,7 @@ public class FileCommandExecutor implements FileCommand {
 
     @Override
     public String getCurrentDir() {
-        return currentDir.toString();
+        return homeDir != currentDir ? currentDir.toString() : "";
     }
 
     @Override

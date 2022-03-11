@@ -18,4 +18,5 @@ public interface Server {
     void upload(Path path);
     void download();
     void changeCurrentDir(String selectedPath);
+    void doAuthenticate(String username, String password);
 }

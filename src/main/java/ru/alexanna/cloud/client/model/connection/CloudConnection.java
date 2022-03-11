@@ -1,14 +1,8 @@
 package ru.alexanna.cloud.client.model.connection;
 
-import com.sun.xml.internal.ws.policy.privateutil.PolicyUtils;
-import io.netty.handler.codec.bytes.ByteArrayEncoder;
-import io.netty.handler.codec.serialization.ObjectDecoderInputStream;
-import io.netty.handler.codec.serialization.ObjectEncoderOutputStream;
-import lombok.Data;
 import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.MessageListener;
-import ru.alexanna.cloud.model.CloudMessage;
-import ru.alexanna.cloud.model.FileMessage;
+import ru.alexanna.cloud.io.general.FileCommand;
 
 import java.io.*;
 import java.net.Socket;
@@ -19,8 +13,6 @@ import java.util.Date;
 @Slf4j
 public class CloudConnection {
 
-    /*private ObjectDecoderInputStream is;
-    private ObjectEncoderOutputStream os;*/
     private DataInputStream is;
     private DataOutputStream os;
     private MessageListener listener;
@@ -49,9 +41,9 @@ public class CloudConnection {
                 log.debug("Waiting for a message from the server...");
                 byte message = is.readByte();
                 log.debug("Message received: {}", message);
-//                listener.onMessageReceived(message);
+                listener.onMessageReceived(message);
             }
-        } catch (Exception e) {
+        } catch (IOException e) {
             log.error("Error reading data from the server.");
             e.printStackTrace();
         }
@@ -88,5 +80,23 @@ public class CloudConnection {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public void sendCredentials() {
+        try {
+            os.writeByte(FileCommand.DO_AUTH);
+            os.writeUTF("test_User !@#$$%^&*()_-+?||}{{}");
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public DataOutputStream getOs() {
+        return os;
+    }
+
+    public DataInputStream getIs() {
+        return is;
     }
 }
