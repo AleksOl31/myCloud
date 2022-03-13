@@ -45,11 +45,7 @@ public class ByteMessageHandler implements MessageListener, Command {
 
     }
 
-    private /*synchronized*/ void processGetFilesList(/*ListFilesMessage message*/) throws IOException {
-        /*serverSideModel.setServerDir(message.getPath());
-        serverSideModel.setServerFilesList(message.getFiles());
-        serverSideModel.notifyObservers();*/
-
+    private void processGetFilesList() throws IOException {
         serverSideModel.setServerDir(is.readUTF());
         int fileNum = is.readInt();
         List<String> files = new ArrayList<>();
@@ -58,7 +54,6 @@ public class ByteMessageHandler implements MessageListener, Command {
             files.add(fileName);
         }
         serverSideModel.setServerFilesList(files);
-        serverSideModel.notifyObservers();
     }
 
 }

@@ -61,10 +61,10 @@ public class CloudConnection {
         }
     }
 
-    public void doAuthenticate(String username, String password) {
+    public void sendMessage(byte command, String message) {
         try {
-            os.writeByte(Command.DO_AUTH);
-            os.writeUTF(username + " " + password);
+            os.writeByte(command);
+            os.writeUTF(message);
             os.flush();
         } catch (IOException e) {
             e.printStackTrace();

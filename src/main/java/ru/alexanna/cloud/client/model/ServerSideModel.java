@@ -2,13 +2,14 @@ package ru.alexanna.cloud.client.model;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.client.model.connection.CloudConnection;
+import ru.alexanna.cloud.io.general.Command;
 
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class ServerSideModel implements CloudServer {
+public class ServerSideModel implements CloudServer, Command {
 
     private final ArrayList<Observer> observers;
 
@@ -67,7 +68,7 @@ public class ServerSideModel implements CloudServer {
 
     @Override
     public void doAuthenticate(String username, String password) {
-        connection.doAuthenticate(username, password);
+        connection.sendMessage(DO_AUTH, username + " " + password);
     }
 
     @Override
@@ -93,6 +94,7 @@ public class ServerSideModel implements CloudServer {
     @Override
     public void setServerFilesList(List<String> serverFilesList) {
         this.serverFilesList = serverFilesList;
+        notifyObservers();
     }
 
     @Override
