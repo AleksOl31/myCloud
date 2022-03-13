@@ -1,14 +1,14 @@
 package ru.alexanna.cloud.client.model.connection;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.alexanna.cloud.MessageListener;
+import ru.alexanna.cloud.client.model.MessageListener;
+import ru.alexanna.cloud.io.general.Command;
 import ru.alexanna.cloud.io.general.FileCommand;
 
 import java.io.*;
 import java.net.Socket;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Date;
 
 @Slf4j
 public class CloudConnection {
@@ -27,7 +27,6 @@ public class CloudConnection {
             Thread readThread = new Thread(this::readLoop);
             readThread.setDaemon(true);
             readThread.start();
-            log.debug("Read thread started: {}", readThread);
         } catch (IOException e) {
             log.error(e.getMessage());
             e.printStackTrace();
@@ -53,10 +52,19 @@ public class CloudConnection {
         this.listener = listener;
     }
 
-    public void sendMessage(byte message) {
-        log.debug(String.valueOf(new Date()));
+    public void sendCommand(byte command) {
         try {
-            os.writeByte(message);
+            os.writeByte(command);
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void doAuthenticate(String username, String password) {
+        try {
+            os.writeByte(Command.DO_AUTH);
+            os.writeUTF(username + " " + password);
             os.flush();
         } catch (IOException e) {
             e.printStackTrace();
@@ -77,16 +85,6 @@ public class CloudConnection {
                 size -= i;
             }
             bos.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void sendCredentials() {
-        try {
-            os.writeByte(FileCommand.DO_AUTH);
-            os.writeUTF("test_User !@#$$%^&*()_-+?||}{{}");
-            os.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

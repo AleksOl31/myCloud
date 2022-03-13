@@ -1,7 +1,7 @@
 package ru.alexanna.cloud.client.model;
 
 import lombok.extern.slf4j.Slf4j;
-import ru.alexanna.cloud.MessageListener;
+import ru.alexanna.cloud.io.general.Command;
 import ru.alexanna.cloud.io.general.FileCommand;
 
 import java.io.DataInputStream;
@@ -11,33 +11,31 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Slf4j
-public class ByteMessageHandler implements MessageListener {
+public class ByteMessageHandler implements MessageListener, Command {
 
-    private final ServerSideModel serverSideModel;
-    private final DataOutputStream os;
+    private final CloudServer serverSideModel;
+//    private final DataOutputStream os;
     private final DataInputStream is;
 
-    public ByteMessageHandler(ServerSideModel serverSideModel) {
+    public ByteMessageHandler(CloudServer serverSideModel) {
         this.serverSideModel = serverSideModel;
-        os = serverSideModel.getConnection().getOs();
+//        os = serverSideModel.getConnection().getOs();
         is = serverSideModel.getConnection().getIs();
-        // TODO здесь временная аутентификация
-//        serverSideModel.getConnection().sendCredentials();
     }
 
     @Override
     public void onMessageReceived(byte message) throws IOException {
         switch (message) {
-            case FileCommand.POST_FILE:
+            case POST_FILE:
                 processPostFile();
                 break;
-            case FileCommand.GET_FILES_LIST:
+            case GET_FILES_LIST:
                 processGetFilesList();
                 break;
-            case FileCommand.AUTH_OK:
-                serverSideModel.getConnection().sendMessage(FileCommand.GET_FILES_LIST);
+            case AUTH_OK:
+                serverSideModel.sendCommand(GET_FILES_LIST);
                 break;
-            case FileCommand.GET_BAD_CRED:
+            case GET_BAD_CRED:
                 log.error("Bad credentials!");
                 break;
         }
@@ -47,7 +45,7 @@ public class ByteMessageHandler implements MessageListener {
 
     }
 
-    private synchronized void processGetFilesList(/*ListFilesMessage message*/) throws IOException {
+    private /*synchronized*/ void processGetFilesList(/*ListFilesMessage message*/) throws IOException {
         /*serverSideModel.setServerDir(message.getPath());
         serverSideModel.setServerFilesList(message.getFiles());
         serverSideModel.notifyObservers();*/

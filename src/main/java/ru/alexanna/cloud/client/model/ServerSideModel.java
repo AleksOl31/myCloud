@@ -1,15 +1,14 @@
 package ru.alexanna.cloud.client.model;
 
+import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.client.model.connection.CloudConnection;
-import ru.alexanna.cloud.io.general.FileCommand;
 
-import java.io.DataOutputStream;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
 
-public class ServerSideModel implements Server {
+@Slf4j
+public class ServerSideModel implements CloudServer {
 
     private final ArrayList<Observer> observers;
 
@@ -26,6 +25,10 @@ public class ServerSideModel implements Server {
         connection.addMessageListener(new ByteMessageHandler(this));
     }
 
+    /**
+     * Observable interface method implements
+     * @param o observer object
+     */
     @Override
     public void registerObserver(Observer o) {
         observers.add(o);
@@ -39,17 +42,21 @@ public class ServerSideModel implements Server {
     @Override
     public void notifyObservers() {
         for (Observer observer : observers) {
-            observer.update(serverDir, serverFilesList);
+            observer.updateServerSideState(serverDir, serverFilesList);
         }
     }
 
+    /**
+     * CloudServer interface method implements
+     * @param path
+     */
     @Override
     public void upload(Path path) {
 
     }
 
     @Override
-    public void download() {
+    public void download(String path) {
 
     }
 
@@ -60,32 +67,35 @@ public class ServerSideModel implements Server {
 
     @Override
     public void doAuthenticate(String username, String password) {
-        DataOutputStream os = connection.getOs();
-        try {
-            os.writeByte(FileCommand.DO_AUTH);
-            os.writeUTF(username + " " + password);
-            os.flush();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
+        connection.doAuthenticate(username, password);
     }
 
+    @Override
+    public void sendCommand(byte command) {
+        connection.sendCommand(command);
+    }
+
+    @Override
     public String getServerDir() {
         return serverDir;
     }
 
+    @Override
     public void setServerDir(String serverDir) {
         this.serverDir = serverDir;
     }
 
+    @Override
     public List<String> getServerFilesList() {
         return serverFilesList;
     }
 
+    @Override
     public void setServerFilesList(List<String> serverFilesList) {
         this.serverFilesList = serverFilesList;
     }
 
+    @Override
     public CloudConnection getConnection() {
         return connection;
     }

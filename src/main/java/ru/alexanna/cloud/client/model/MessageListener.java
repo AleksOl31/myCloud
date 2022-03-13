@@ -1,4 +1,4 @@
-package ru.alexanna.cloud;
+package ru.alexanna.cloud.client.model;
 
 import ru.alexanna.cloud.model.CloudMessage;
 

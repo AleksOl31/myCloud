@@ -1,6 +1,7 @@
 package ru.alexanna.cloud.io.client;
 
 import lombok.extern.slf4j.Slf4j;
+import ru.alexanna.cloud.io.general.Command;
 import ru.alexanna.cloud.io.general.FileCommand;
 
 import java.io.*;
@@ -12,7 +13,7 @@ import java.util.Date;
 import java.util.Scanner;
 
 @Slf4j
-public class ClientIO {
+public class ClientIO implements Command {
 
     private DataInputStream is;
     private DataOutputStream os;
@@ -55,19 +56,19 @@ public class ClientIO {
 
     private void processServerCommand(byte serverCmd) {
         switch (serverCmd) {
-            case FileCommand.GET_FILES_LIST:
+            case GET_FILES_LIST:
                 processServerFilesList();
                 break;
-            case FileCommand.GET_OK:
+            case GET_OK:
                 processCetOk();
                 break;
-            case FileCommand.GET_FAILED:
+            case GET_FAILED:
                 processGetFailed();
                 break;
-            case FileCommand.GET_BAD_CRED:
+            case GET_BAD_CRED:
                 log.error("Bad credentials");
                 break;
-            case FileCommand.BYE:
+            case BYE:
                 isConnected = false;
                 break;
         }
@@ -114,7 +115,7 @@ public class ClientIO {
         try (FileInputStream fis = new FileInputStream(file)) {
             byte[] bytes = new byte[BUFFER_SIZE];
             long size = Files.size(clientDir.resolve(fileName).toAbsolutePath());
-            sendCommandType(FileCommand.POST_FILE, false);
+            sendCommandType(POST_FILE, false);
             os.writeUTF(fileName);
             os.writeLong(size);
             int percentageSent;
@@ -139,7 +140,7 @@ public class ClientIO {
 
     private void sendCredentials() {
         try {
-            os.writeByte(FileCommand.DO_AUTH);
+            os.writeByte(DO_AUTH);
             os.writeUTF("test_User_2 !@#$$%^&*()_-+?||}{{}");
             os.flush();
         } catch (IOException e) {
@@ -158,10 +159,10 @@ public class ClientIO {
             if (msg == 21) return;
 
             switch (msg) {
-                case FileCommand.DO_AUTH:
+                case DO_AUTH:
                     client.sendCredentials();
                     break;
-                case FileCommand.POST_FILE:
+                case POST_FILE:
                     client.sendFileToServer("!!!Big_file_for_test_transfer");
                     break;
                 /*case FileCommand.GET_FILES_LIST:

@@ -1,13 +1,14 @@
 package ru.alexanna.cloud.io.server;
 
 import lombok.extern.slf4j.Slf4j;
+import ru.alexanna.cloud.io.general.Command;
 import ru.alexanna.cloud.io.general.FileCommand;
 
 import java.io.*;
 import java.util.List;
 
 @Slf4j
-public class ClientMsgProcessor {
+public class ClientMsgProcessor implements Command {
 
     private final ClientConnectionHandler handler;
     private final DataInputStream is;
@@ -26,19 +27,19 @@ public class ClientMsgProcessor {
     public void commandProcessing(byte command) throws IOException {
         if (isAuthenticated)
             switch (command) {
-                case FileCommand.GET_FILES_LIST:
+                case GET_FILES_LIST:
                     sendServerFilesList();
                     break;
-                case FileCommand.POST_FILE:
+                case POST_FILE:
                     getFileFromClient();
-                    sendCommand(FileCommand.GET_OK);
+                    sendCommand(GET_OK);
                     break;
-                case FileCommand.QUIT:
-                    sendCommand(FileCommand.BYE);
+                case QUIT:
+                    sendCommand(BYE);
                     handler.logout();
                     break;
             }
-        else if (command == FileCommand.DO_AUTH) doAuthentication();
+        else if (command == DO_AUTH) doAuthentication();
         else throw new IOException("Unexpected data from client");
     }
 
@@ -50,23 +51,24 @@ public class ClientMsgProcessor {
         if (isAuthenticated) {
             this.userName = credentials[0];
             fileCommander.initHomeDir(userName);
-            sendCommand(FileCommand.AUTH_OK);
+            log.debug("User with username '{}' authenticated.", userName);
+            sendCommand(AUTH_OK);
         } else {
-            sendCommand(FileCommand.GET_BAD_CRED);
+            sendCommand(GET_BAD_CRED);
         }
     }
 
     private void sendServerFilesList() {
         try {
             List<String> files = fileCommander.getCurrentFilesList();
-            os.writeByte(FileCommand.GET_FILES_LIST);
+            os.writeByte(GET_FILES_LIST);
             os.writeUTF(fileCommander.getCurrentDir());
             os.writeInt(files.size());
             for (String file : files) {
                 os.writeUTF(file);
             }
             os.flush();
-            log.debug("List of files sent to the client {} ", handler.getIncomingSocket().getInetAddress());
+            log.debug("List of files sent to the client {} with username '{}'", handler.getIncomingSocket().getInetAddress(), userName);
         } catch (IOException e) {
             e.printStackTrace();
         }

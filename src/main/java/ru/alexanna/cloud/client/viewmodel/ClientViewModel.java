@@ -7,10 +7,7 @@ import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
-import ru.alexanna.cloud.client.model.ClientSideModel;
-import ru.alexanna.cloud.client.model.Observer;
-import ru.alexanna.cloud.client.model.ServerSideModel;
-import ru.alexanna.cloud.client.model.Server;
+import ru.alexanna.cloud.client.model.*;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -25,14 +22,14 @@ public class ClientViewModel implements Observer {
     private final StringProperty serverDir = new SimpleStringProperty("");
     private final ReadOnlyListProperty<String> serverFiles = new SimpleListProperty<>(FXCollections.observableArrayList());
     private ClientSideModel clientSideModel;
-    private Server serverSideModel;
+    private CloudServer serverSideModel;
 
     public ClientViewModel() {
-        initClientState();
-        initServerState();
+        initClientSideState();
+        initServerSideState();
     }
 
-    private void initClientState() {
+    private void initClientSideState() {
         clientSideModel = new ClientSideModel(Paths.get(System.getProperty("user.home")));
         updateClientSideState();
     }
@@ -47,13 +44,13 @@ public class ClientViewModel implements Observer {
         });
     }
 
-    private void initServerState() {
+    private void initServerSideState() {
         serverSideModel = new ServerSideModel();
         serverSideModel.registerObserver(this);
     }
 
     @Override
-    public void update(String serverDir, List<String> serverFilesList) {
+    public void updateServerSideState(String serverDir, List<String> serverFilesList) {
         Platform.runLater(() -> {
             setServerDir(serverDir);
             serverFiles.clear();
@@ -131,8 +128,9 @@ public class ClientViewModel implements Observer {
         serverSideModel.changeCurrentDir("..");
     }
 
+    // TODO здесь временная аутентификация
     public void performAuthenticate() {
-        serverSideModel.doAuthenticate("test_User", "!@#$$%^&*()_-+?||}{{}");
+        serverSideModel.doAuthenticate("test_User_1", "!@#$$%^&*()_-+?||}{{}");
     }
 }
 
