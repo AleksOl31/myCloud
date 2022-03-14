@@ -33,6 +33,7 @@ public class ByteMessageHandler implements MessageListener, Command {
                 processGetFilesList();
                 break;
             case AUTH_OK:
+            case GET_OK:
                 serverSideModel.sendCommand(GET_FILES_LIST);
                 break;
             case GET_BAD_CRED:

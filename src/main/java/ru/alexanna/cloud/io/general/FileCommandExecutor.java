@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 public class FileCommandExecutor implements FileCommand {
-    private static final int BUFFER_SIZE = 8192;
+    private final int BUFFER_SIZE = 8192;
     private final Path cloudDataDir = Paths.get("data");
     private Path homeDir;
     private Path currentDir;
@@ -46,7 +46,16 @@ public class FileCommandExecutor implements FileCommand {
 
     @Override
     public String getCurrentDir() {
-        return homeDir != currentDir ? currentDir.toString() : "";
+        return currentDir.toString(); //homeDir != currentDir ? currentDir.toString() : "";
+    }
+
+    @Override
+    public void setCurrentDir(String targetDir) {
+        Path targetPath = currentDir.resolve(targetDir);
+        if (Files.isDirectory(targetPath)) {
+            if (!(currentDir.endsWith(homeDir) && targetDir.equals("..")))
+                currentDir = targetPath.normalize();
+        }
     }
 
     @Override

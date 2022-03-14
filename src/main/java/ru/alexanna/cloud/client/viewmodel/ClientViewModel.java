@@ -114,7 +114,7 @@ public class ClientViewModel implements Observer {
 
     public void upload(String fileName) {
         Platform.runLater(() -> {
-            Path path = clientSideModel.getClientDir().resolve(fileName);
+            Path path = clientSideModel.getClientDir().resolve(fileName).toAbsolutePath();
             serverSideModel.upload(path);
         });
     }
@@ -130,7 +130,7 @@ public class ClientViewModel implements Observer {
 
     // TODO здесь временная аутентификация
     public void performAuthenticate() {
-        serverSideModel.doAuthenticate("test_User_1", "!@#$$%^&*()_-+?||}{{}");
+        serverSideModel.doAuthenticate("test_User", "!@#$$%^&*()_-+?||}{{}");
     }
 }
 

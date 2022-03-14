@@ -4,6 +4,8 @@ import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.client.model.MessageListener;
 import ru.alexanna.cloud.io.general.Command;
 import ru.alexanna.cloud.io.general.FileCommand;
+import ru.alexanna.cloud.io.general.FileCommandExecutor;
+import ru.alexanna.cloud.io.general.FileInfo;
 
 import java.io.*;
 import java.net.Socket;
@@ -73,18 +75,21 @@ public class CloudConnection {
 
     public void sendFile(Path fileName) {
         final int BUFFER_SIZE = 8192;
-        try (FileInputStream fin = new FileInputStream(fileName.toString())){
-            BufferedOutputStream bos = new BufferedOutputStream(socket.getOutputStream());
+        try (InputStream fin = new BufferedInputStream(new FileInputStream(fileName.toString()))){
             byte[] bytes = new byte[BUFFER_SIZE];
             long size = Files.size(fileName);
-            int sizePart = (int) size / BUFFER_SIZE;
-            if (size % BUFFER_SIZE != 0) sizePart++;
+            os.writeByte(Command.POST_FILE);
+            os.writeUTF(fileName.getFileName().toString());
+            log.debug(fileName.getFileName().toString());
+            os.writeLong(size);
+//            int sizePart = (int) size / BUFFER_SIZE;
+//            if (size % BUFFER_SIZE != 0) sizePart++;
             while (size > 0) {
-                int i = fin.read(bytes);
-                bos.write(bytes, 0, i);
-                size -= i;
+                int numBytes = fin.read(bytes);
+                os.write(bytes, 0, numBytes);
+                size -= numBytes;
             }
-            bos.flush();
+            os.flush();
         } catch (IOException e) {
             e.printStackTrace();
         }

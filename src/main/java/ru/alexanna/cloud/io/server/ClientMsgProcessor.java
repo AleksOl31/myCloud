@@ -34,6 +34,9 @@ public class ClientMsgProcessor implements Command {
                     getFileFromClient();
                     sendCommand(GET_OK);
                     break;
+                case CHANGE_PATH_REQUEST:
+                    changePathRequestProcess();
+                    break;
                 case QUIT:
                     sendCommand(BYE);
                     handler.logout();
@@ -93,6 +96,13 @@ public class ClientMsgProcessor implements Command {
             log.error("Exception in getFileFromClient");
             e.printStackTrace();
         }
+    }
+
+    private void changePathRequestProcess() throws IOException {
+        String requestedDir = is.readUTF();
+        fileCommander.setCurrentDir(requestedDir);
+        log.debug(fileCommander.getCurrentDir());
+        sendServerFilesList();
     }
 
     public String getUserName() {

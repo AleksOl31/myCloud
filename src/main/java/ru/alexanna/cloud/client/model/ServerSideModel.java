@@ -49,11 +49,11 @@ public class ServerSideModel implements CloudServer, Command {
 
     /**
      * CloudServer interface method implements
-     * @param path
+     * @param path path to the transferred file
      */
     @Override
     public void upload(Path path) {
-
+        connection.sendFile(path);
     }
 
     @Override
@@ -63,7 +63,8 @@ public class ServerSideModel implements CloudServer, Command {
 
     @Override
     public void changeCurrentDir(String selectedPath) {
-//        connection.sendMessage(new PathChangeRequestMessage(selectedPath));
+        connection.sendMessage(CHANGE_PATH_REQUEST, selectedPath);
+        notifyObservers();
     }
 
     @Override
