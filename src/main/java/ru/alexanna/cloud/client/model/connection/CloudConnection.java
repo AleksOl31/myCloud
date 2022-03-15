@@ -3,9 +3,6 @@ package ru.alexanna.cloud.client.model.connection;
 import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.client.model.MessageListener;
 import ru.alexanna.cloud.io.general.Command;
-import ru.alexanna.cloud.io.general.FileCommand;
-import ru.alexanna.cloud.io.general.FileCommandExecutor;
-import ru.alexanna.cloud.io.general.FileInfo;
 
 import java.io.*;
 import java.net.Socket;

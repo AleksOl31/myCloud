@@ -16,7 +16,7 @@ public class ServerSideModel implements CloudServer, Command {
     private String serverDir;
     private List<String> serverFilesList;
                                 // TODO change IP address here
-    private final String HOST = "localhost"; /*"192.168.50.114";*/
+    private final String HOST = /*"10.70.29.158";*/ "localhost"; /*"192.168.50.114";*/
     private final int PORT = 8189;
     private final CloudConnection connection;
 

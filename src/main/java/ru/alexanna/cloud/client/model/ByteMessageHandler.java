@@ -36,10 +36,18 @@ public class ByteMessageHandler implements MessageListener, Command {
             case GET_OK:
                 serverSideModel.sendCommand(GET_FILES_LIST);
                 break;
+            case POST_COMPLETED:
+                processPostCompleted();
+                break;
             case GET_BAD_CRED:
                 log.error("Bad credentials!");
                 break;
         }
+    }
+
+    private void processPostCompleted() throws IOException {
+        long sendCompleted = is.readLong();
+        log.debug(String.valueOf(sendCompleted));
     }
 
     private void processPostFile() {

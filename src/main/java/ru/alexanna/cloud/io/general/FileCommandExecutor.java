@@ -5,6 +5,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.function.LongConsumer;
 import java.util.stream.Collectors;
 
 public class FileCommandExecutor implements FileCommand {
@@ -12,6 +13,7 @@ public class FileCommandExecutor implements FileCommand {
     private final Path cloudDataDir = Paths.get("data");
     private Path homeDir;
     private Path currentDir;
+    private LongConsumer bytesWritten;
 
     public FileCommandExecutor() {
     }
@@ -66,17 +68,21 @@ public class FileCommandExecutor implements FileCommand {
     }
 
     @Override
-    public void writeFile(String fileName, long fileSize, InputStream is) throws IOException {
-        OutputStream fos = new BufferedOutputStream(new FileOutputStream(currentDir.resolve(fileName).toString()));
-        int countIterations = 0;
-        byte[] buf = new byte[BUFFER_SIZE];
-        long totalRead = 0;
-        while (totalRead < fileSize) {
-            countIterations++;
-            int readBytes = is.read(buf);
-            totalRead += readBytes;
-//                    if (countIterations % 10_000 == 0) log.debug("{} bytes read", totalRead);
-            fos.write(buf, 0, readBytes);
+    public void writeFile(String fileName, long fileSize, InputStream is, LongConsumer bytesWritten) throws IOException {
+        this.bytesWritten = bytesWritten;
+        try (OutputStream fos = new BufferedOutputStream(new FileOutputStream(currentDir.resolve(fileName).toString()))) {
+            byte[] buf = new byte[BUFFER_SIZE];
+            long totalRead = 0;
+            while (totalRead < fileSize) {
+                int readBytes = is.read(buf);
+                totalRead += readBytes;
+                fos.write(buf, 0, readBytes);
+                onWriteCompleted(totalRead);
+            }
         }
+    }
+
+    private void onWriteCompleted(long totalWritten) {
+        bytesWritten.accept(totalWritten);
     }
 }

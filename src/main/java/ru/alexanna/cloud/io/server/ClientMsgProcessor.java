@@ -86,12 +86,24 @@ public class ClientMsgProcessor implements Command {
         }
     }
 
+    private void sendMessage(byte command, long value) {
+        try {
+            os.writeByte(command);
+            os.writeLong(value);
+            os.flush();
+        } catch (IOException e) {
+            log.error(e.getMessage());
+        }
+    }
+
     private void getFileFromClient() {
         try {
             String fileName = is.readUTF();
             log.debug("Receive file: {}", fileName);
             long fileSize = is.readLong();
-            fileCommander.writeFile(fileName, fileSize, is);
+            fileCommander.writeFile(fileName, fileSize, is, (bytesCompleted) -> {
+                sendMessage(POST_COMPLETED, bytesCompleted);
+            });
         } catch (IOException e) {
             log.error("Exception in getFileFromClient");
             e.printStackTrace();
@@ -101,7 +113,6 @@ public class ClientMsgProcessor implements Command {
     private void changePathRequestProcess() throws IOException {
         String requestedDir = is.readUTF();
         fileCommander.setCurrentDir(requestedDir);
-        log.debug(fileCommander.getCurrentDir());
         sendServerFilesList();
     }
 
