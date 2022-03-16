@@ -3,6 +3,7 @@ package ru.alexanna.cloud.client.model;
 import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.io.general.Command;
 import ru.alexanna.cloud.io.general.FileCommand;
+import ru.alexanna.cloud.io.general.FileCommandExecutor;
 
 import java.io.DataInputStream;
 import java.io.DataOutputStream;
@@ -14,13 +15,13 @@ import java.util.List;
 public class ByteMessageHandler implements MessageListener, Command {
 
     private final CloudServer serverSideModel;
-//    private final DataOutputStream os;
     private final DataInputStream is;
+    private final FileCommand fileCommander;
 
     public ByteMessageHandler(CloudServer serverSideModel) {
         this.serverSideModel = serverSideModel;
-//        os = serverSideModel.getConnection().getOs();
         is = serverSideModel.getConnection().getIs();
+        fileCommander = new FileCommandExecutor();
     }
 
     @Override
@@ -50,8 +51,13 @@ public class ByteMessageHandler implements MessageListener, Command {
         log.debug(String.valueOf(sendCompleted));
     }
 
-    private void processPostFile() {
-
+    private void processPostFile() throws IOException {
+        String fileName = is.readUTF();
+        log.debug("Receive file: {}", fileName);
+        long fileSize = is.readLong();
+        fileCommander.writeFile(fileName, fileSize, is, (bytesCompleted) -> {
+            log.debug(String.valueOf(bytesCompleted));
+        });
     }
 
     private void processGetFilesList() throws IOException {

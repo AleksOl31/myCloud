@@ -15,6 +15,7 @@ public class ServerSideModel implements CloudServer, Command {
 
     private String serverDir;
     private List<String> serverFilesList;
+    private String percentCompleted;
                                 // TODO change IP address here
     private final String HOST = /*"10.70.29.158";*/ "localhost"; /*"192.168.50.114";*/
     private final int PORT = 8189;
@@ -41,7 +42,7 @@ public class ServerSideModel implements CloudServer, Command {
     }
 
     @Override
-    public void notifyObservers() {
+    public void notifyServerStateObservers() {
         for (Observer observer : observers) {
             observer.updateServerSideState(serverDir, serverFilesList);
         }
@@ -57,14 +58,14 @@ public class ServerSideModel implements CloudServer, Command {
     }
 
     @Override
-    public void download(String path) {
-
+    public void download(String fileName) {
+        connection.sendMessage(GET_FILE, fileName);
     }
 
     @Override
     public void changeCurrentDir(String selectedPath) {
         connection.sendMessage(CHANGE_PATH_REQUEST, selectedPath);
-        notifyObservers();
+        notifyServerStateObservers();
     }
 
     @Override
@@ -95,11 +96,12 @@ public class ServerSideModel implements CloudServer, Command {
     @Override
     public void setServerFilesList(List<String> serverFilesList) {
         this.serverFilesList = serverFilesList;
-        notifyObservers();
+        notifyServerStateObservers();
     }
 
     @Override
     public CloudConnection getConnection() {
         return connection;
     }
+
 }

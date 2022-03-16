@@ -5,6 +5,7 @@ import ru.alexanna.cloud.io.general.FileCommandExecutor;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.file.Paths;
 
 @Slf4j
 public class ClientConnectionHandler implements Runnable {
@@ -23,7 +24,7 @@ public class ClientConnectionHandler implements Runnable {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        this.msgProcessor = new ClientMsgProcessor(this, new FileCommandExecutor());
+        this.msgProcessor = new ClientMsgProcessor(this, new FileCommandExecutor(Paths.get("data")));
     }
 
     @Override

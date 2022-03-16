@@ -8,21 +8,21 @@ import java.util.stream.Collectors;
 
 public class ClientSideModel {
 
-    private Path clientDir;
+    private Path currentDir;
     private List<Path> clientFilesList;
 
-    public ClientSideModel(Path clientDir) {
-        setClientDir(clientDir);
+    public ClientSideModel(Path currentDir) {
+        setCurrentDir(currentDir);
     }
 
-    public Path getClientDir() {
-        return clientDir;
+    public Path getCurrentDir() {
+        return currentDir;
     }
 
-    public void setClientDir(Path clientDir) {
+    public void setCurrentDir(Path currentDir) {
         try {
-            this.clientDir = clientDir;
-            setClientFilesList(Files.list(clientDir)
+            this.currentDir = currentDir;
+            setClientFilesList(Files.list(currentDir)
                     .filter(this::isHidden)
                     .sorted()
                     .collect(Collectors.toList()));
@@ -42,7 +42,7 @@ public class ClientSideModel {
         return result;
     }
 
-    public List<Path> getClientFilesList() {
+    public List<Path> getCurrentFilesList() {
         return clientFilesList;
     }
 

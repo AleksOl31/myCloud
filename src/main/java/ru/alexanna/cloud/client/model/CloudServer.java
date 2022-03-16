@@ -11,7 +11,7 @@ public interface CloudServer extends Observable {
      * @param path
      */
     void upload(Path path);
-    void download(String path);
+    void download(String fileName);
     void changeCurrentDir(String selectedPath);
     void doAuthenticate(String username, String password);
     void sendCommand(byte command);

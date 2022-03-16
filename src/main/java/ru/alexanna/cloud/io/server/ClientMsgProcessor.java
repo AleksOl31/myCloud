@@ -31,11 +31,14 @@ public class ClientMsgProcessor implements Command {
                     sendServerFilesList();
                     break;
                 case POST_FILE:
-                    getFileFromClient();
+                    processPostFile();
                     sendCommand(GET_OK);
                     break;
                 case CHANGE_PATH_REQUEST:
                     changePathRequestProcess();
+                    break;
+                case GET_FILE:
+                    getFileClientRequestProcess();
                     break;
                 case QUIT:
                     sendCommand(BYE);
@@ -44,6 +47,11 @@ public class ClientMsgProcessor implements Command {
             }
         else if (command == DO_AUTH) doAuthentication();
         else throw new IOException("Unexpected data from client");
+    }
+
+    private void getFileClientRequestProcess() throws IOException {
+        String fileName = is.readUTF();
+        fileCommander.sendFileToClient(os, fileName);
     }
 
     private void doAuthentication() throws IOException {
@@ -96,18 +104,18 @@ public class ClientMsgProcessor implements Command {
         }
     }
 
-    private void getFileFromClient() {
-        try {
+    private void processPostFile() throws IOException {
+        /*try {*/
             String fileName = is.readUTF();
             log.debug("Receive file: {}", fileName);
             long fileSize = is.readLong();
             fileCommander.writeFile(fileName, fileSize, is, (bytesCompleted) -> {
                 sendMessage(POST_COMPLETED, bytesCompleted);
             });
-        } catch (IOException e) {
+        /*} catch (IOException e) {
             log.error("Exception in getFileFromClient");
             e.printStackTrace();
-        }
+        }*/
     }
 
     private void changePathRequestProcess() throws IOException {

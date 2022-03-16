@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class FileCommandExecutor implements FileCommand {
     private final int BUFFER_SIZE = 8192;
-    private final Path cloudDataDir = Paths.get("data");
+    private Path cloudRootDir = Paths.get("data");
     private Path homeDir;
     private Path currentDir;
     private LongConsumer bytesWritten;
@@ -18,9 +18,11 @@ public class FileCommandExecutor implements FileCommand {
     public FileCommandExecutor() {
     }
 
-    public FileCommandExecutor(String userHomeDir) {
-        this.homeDir = cloudDataDir.resolve(userHomeDir);
-        currentDir = homeDir;
+    public FileCommandExecutor(Path cloudRootDir) {
+//        this.homeDir = cloudRootDir.resolve(userHomeDir);
+//        currentDir = homeDir;
+        this.cloudRootDir = cloudRootDir;
+        homeDir = cloudRootDir;
     }
 
     @Override
@@ -35,7 +37,7 @@ public class FileCommandExecutor implements FileCommand {
 
     @Override
     public void initHomeDir(String userHomeDir) {
-        homeDir = cloudDataDir.resolve(userHomeDir);
+        homeDir = cloudRootDir.resolve(userHomeDir);
         try {
             if (Files.notExists(homeDir)) {
                 Files.createDirectory(homeDir);
@@ -84,5 +86,26 @@ public class FileCommandExecutor implements FileCommand {
 
     private void onWriteCompleted(long totalWritten) {
         bytesWritten.accept(totalWritten);
+    }
+
+    @Override
+    public void sendFileToClient(DataOutputStream os, String fileName) {
+        Path filePath = currentDir.resolve(fileName).toAbsolutePath();
+
+        try (InputStream fin = new BufferedInputStream(new FileInputStream(filePath.toFile()))){
+            byte[] bytes = new byte[BUFFER_SIZE];
+            long size = Files.size(filePath);
+            os.writeByte(Command.POST_FILE);
+            os.writeUTF(fileName);
+            os.writeLong(size);
+            while (size > 0) {
+                int numBytes = fin.read(bytes);
+                os.write(bytes, 0, numBytes);
+                size -= numBytes;
+            }
+            os.flush();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }

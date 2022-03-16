@@ -36,9 +36,9 @@ public class CloudConnection {
     private void readLoop() {
         try {
             while (true) {
-                log.debug("Waiting for a message from the server...");
+//                log.debug("Waiting for a message from the server...");
                 byte message = is.readByte();
-                log.debug("Message received: {}", message);
+//                log.debug("Message received: {}", message);
                 listener.onMessageReceived(message);
             }
         } catch (IOException e) {
@@ -77,7 +77,6 @@ public class CloudConnection {
             long size = Files.size(fileName);
             os.writeByte(Command.POST_FILE);
             os.writeUTF(fileName.getFileName().toString());
-            log.debug(fileName.getFileName().toString());
             os.writeLong(size);
 //            int sizePart = (int) size / BUFFER_SIZE;
 //            if (size % BUFFER_SIZE != 0) sizePart++;

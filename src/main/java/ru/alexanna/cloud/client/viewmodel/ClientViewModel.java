@@ -8,6 +8,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import ru.alexanna.cloud.client.model.*;
+import ru.alexanna.cloud.io.general.FileCommand;
+import ru.alexanna.cloud.io.general.FileCommandExecutor;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,7 +23,10 @@ public class ClientViewModel implements Observer {
     private final ReadOnlyListProperty<String> clientFiles = new SimpleListProperty<>(FXCollections.observableArrayList());
     private final StringProperty serverDir = new SimpleStringProperty("");
     private final ReadOnlyListProperty<String> serverFiles = new SimpleListProperty<>(FXCollections.observableArrayList());
+    private final StringProperty percentCompleted = new SimpleStringProperty("test");
     private ClientSideModel clientSideModel;
+    // Изменения 16.03.22 - для перехода на FileCommand в кач-ве ClientSideModel
+//    private FileCommand clientSideModel
     private CloudServer serverSideModel;
 
     public ClientViewModel() {
@@ -31,14 +36,15 @@ public class ClientViewModel implements Observer {
 
     private void initClientSideState() {
         clientSideModel = new ClientSideModel(Paths.get(System.getProperty("user.home")));
+//        clientSideModel = new FileCommandExecutor(Paths.get(System.getProperty("user.home")));
         updateClientSideState();
     }
 
     private void updateClientSideState() {
         Platform.runLater(() -> {
-            setClientDir(clientSideModel.getClientDir().toString());
+            setClientDir(clientSideModel.getCurrentDir().toString());
             clientFiles.clear();
-            clientFiles.addAll(clientSideModel.getClientFilesList().stream()
+            clientFiles.addAll(clientSideModel.getCurrentFilesList().stream()
                     .map(path -> path.getFileName().toString())
                     .collect(Collectors.toList()));
         });
@@ -57,6 +63,7 @@ public class ClientViewModel implements Observer {
             serverFiles.addAll(serverFilesList.stream().sorted().collect(Collectors.toList()));
         });
     }
+
 
     public String getClientDir() {
         return clientDir.get();
@@ -98,24 +105,42 @@ public class ClientViewModel implements Observer {
         return serverFiles;
     }
 
+    public String getPercentCompleted() {
+        return percentCompleted.get();
+    }
+
+    public StringProperty percentCompletedProperty() {
+        return percentCompleted;
+    }
+
+    public void setPercentCompleted(String percentCompleted) {
+        this.percentCompleted.set(percentCompleted);
+    }
+
     public void changeClientDir(String selectedDir) {
-        Path selectedPath = clientSideModel.getClientDir().resolve(selectedDir);
+        Path selectedPath = clientSideModel.getCurrentDir().resolve(selectedDir);
         if (Files.isDirectory(selectedPath)) {
-            clientSideModel.setClientDir(selectedPath);
+            clientSideModel.setCurrentDir(selectedPath);
             updateClientSideState();
         }
     }
 
     public void goToTopClientFolder() {
-        Path parentPath = clientSideModel.getClientDir().getParent();
-        clientSideModel.setClientDir(parentPath);
+        Path parentPath = clientSideModel.getCurrentDir().getParent();
+        clientSideModel.setCurrentDir(parentPath);
         updateClientSideState();
     }
 
     public void upload(String fileName) {
         Platform.runLater(() -> {
-            Path path = clientSideModel.getClientDir().resolve(fileName).toAbsolutePath();
+            Path path = clientSideModel.getCurrentDir().resolve(fileName).toAbsolutePath();
             serverSideModel.upload(path);
+        });
+    }
+
+    public void download(String fileName) {
+        Platform.runLater(() -> {
+            serverSideModel.download(fileName);
         });
     }
 
@@ -132,6 +157,7 @@ public class ClientViewModel implements Observer {
     public void performAuthenticate() {
         serverSideModel.doAuthenticate("test_User", "!@#$$%^&*()_-+?||}{{}");
     }
+
 }
 
 

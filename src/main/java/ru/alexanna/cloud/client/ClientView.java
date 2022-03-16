@@ -9,16 +9,18 @@ import java.util.ResourceBundle;
 import javafx.application.Platform;
 import javafx.event.ActionEvent;
 import javafx.fxml.Initializable;
+import javafx.scene.control.Label;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextField;
 import ru.alexanna.cloud.client.viewmodel.ClientViewModel;
 
-public class ClientView implements Initializable/*, MessageListener*/ {
+public class ClientView implements Initializable {
 
     public ListView<String> clientView;
     public ListView<String> serverView;
     public TextField clientPath;
     public TextField serverPath;
+    public Label percentCompleted;
 
     private final ClientViewModel viewModel = new ClientViewModel();
 
@@ -35,6 +37,7 @@ public class ClientView implements Initializable/*, MessageListener*/ {
         clientView.itemsProperty().bind(viewModel.clientFilesProperty());
         serverPath.textProperty().bind(viewModel.serverDirProperty());
         serverView.itemsProperty().bind(viewModel.serverFilesProperty());
+        percentCompleted.textProperty().bind(viewModel.percentCompletedProperty());
     }
 
     private void initMouseListeners() {
@@ -53,15 +56,6 @@ public class ClientView implements Initializable/*, MessageListener*/ {
 
     }
 
-/*    private void processFileMessage(FileMessage message) {
-        try {
-            Files.write(clientDir.resolve(message.getFileName()), message.getBytes());
-            Platform.runLater(this::updateClientView);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }*/
-
     public void upload(ActionEvent actionEvent) {
         String fileName = clientView.getSelectionModel().getSelectedItem();
         viewModel.upload(fileName);
@@ -70,7 +64,7 @@ public class ClientView implements Initializable/*, MessageListener*/ {
 
     public void download(ActionEvent actionEvent) {
         String fileName = serverView.getSelectionModel().getSelectedItem();
-//        connection.sendMessage(new FileRequestMessage(fileName));
+        viewModel.download(fileName);
     }
 
     public void goToTopClientFolder(ActionEvent actionEvent) {

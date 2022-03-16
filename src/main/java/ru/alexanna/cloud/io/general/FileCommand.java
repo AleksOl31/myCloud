@@ -1,5 +1,6 @@
 package ru.alexanna.cloud.io.general;
 
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.List;
@@ -19,4 +20,6 @@ public interface FileCommand {
     List<String> getCurrentFilesList() throws IOException;
 
     void writeFile(String fileName, long fileSize, InputStream is, LongConsumer bytesWritten) throws IOException;
+
+    void sendFileToClient(DataOutputStream os, String fileName);
 }
