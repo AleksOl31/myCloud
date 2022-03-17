@@ -32,6 +32,7 @@ public class ClientConnectionHandler implements Runnable {
         try {
             while (isConnected) {
                 byte command = is.readByte();
+                log.debug("Received command {}", command);
                 msgProcessor.commandProcessing(command);
             }
         } catch (IOException e) {

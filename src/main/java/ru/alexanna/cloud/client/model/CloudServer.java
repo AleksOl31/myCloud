@@ -2,6 +2,7 @@ package ru.alexanna.cloud.client.model;
 
 import ru.alexanna.cloud.client.model.connection.CloudConnection;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -20,4 +21,5 @@ public interface CloudServer extends Observable {
     void setServerDir(String serverDir);
     List<String> getServerFilesList();
     void setServerFilesList(List<String> serverFilesList);
+    void writeFile(String fileName, long fileSize) throws IOException;
 }

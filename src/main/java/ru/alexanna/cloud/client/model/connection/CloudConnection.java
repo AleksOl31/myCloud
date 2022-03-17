@@ -38,7 +38,7 @@ public class CloudConnection {
             while (true) {
 //                log.debug("Waiting for a message from the server...");
                 byte message = is.readByte();
-//                log.debug("Message received: {}", message);
+                log.debug("Message received: {}", message);
                 listener.onMessageReceived(message);
             }
         } catch (IOException e) {

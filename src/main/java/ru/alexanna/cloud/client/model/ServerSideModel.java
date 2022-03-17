@@ -3,7 +3,10 @@ package ru.alexanna.cloud.client.model;
 import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.client.model.connection.CloudConnection;
 import ru.alexanna.cloud.io.general.Command;
+import ru.alexanna.cloud.io.general.FileCommand;
+import ru.alexanna.cloud.io.general.FileCommandExecutor;
 
+import java.io.IOException;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
@@ -20,8 +23,10 @@ public class ServerSideModel implements CloudServer, Command {
     private final String HOST = /*"10.70.29.158";*/ "localhost"; /*"192.168.50.114";*/
     private final int PORT = 8189;
     private final CloudConnection connection;
+    private FileCommand clientSideModel;
 
-    public ServerSideModel() {
+    public ServerSideModel(FileCommand clientSideModel) {
+        this.clientSideModel = clientSideModel;
         observers = new ArrayList<>();
         connection = new CloudConnection(HOST, PORT);
         connection.addMessageListener(new ByteMessageHandler(this));
@@ -48,6 +53,13 @@ public class ServerSideModel implements CloudServer, Command {
         }
     }
 
+    @Override
+    public void notifyClientStateObservers() {
+        for (Observer observer : observers) {
+            observer.updateClientSideState();
+        }
+    }
+
     /**
      * CloudServer interface method implements
      * @param path path to the transferred file
@@ -60,6 +72,12 @@ public class ServerSideModel implements CloudServer, Command {
     @Override
     public void download(String fileName) {
         connection.sendMessage(GET_FILE, fileName);
+    }
+
+    @Override
+    public void writeFile(String fileName, long fileSize) throws IOException {
+        clientSideModel.writeFile(fileName, fileSize, connection.getIs(), (bytesCompleted) -> {});
+        notifyClientStateObservers();
     }
 
     @Override

@@ -10,7 +10,7 @@ import java.util.stream.Collectors;
 
 public class FileCommandExecutor implements FileCommand {
     private final int BUFFER_SIZE = 8192;
-    private Path cloudRootDir = Paths.get("data");
+    private Path cloudRootDir; // = Paths.get("data");
     private Path homeDir;
     private Path currentDir;
     private LongConsumer bytesWritten;
@@ -23,6 +23,7 @@ public class FileCommandExecutor implements FileCommand {
 //        currentDir = homeDir;
         this.cloudRootDir = cloudRootDir;
         homeDir = cloudRootDir;
+        currentDir = cloudRootDir;
     }
 
     @Override
@@ -49,8 +50,8 @@ public class FileCommandExecutor implements FileCommand {
     }
 
     @Override
-    public String getCurrentDir() {
-        return currentDir.toString(); //homeDir != currentDir ? currentDir.toString() : "";
+    public Path getCurrentDir() {
+        return currentDir;//.toString(); //homeDir != currentDir ? currentDir.toString() : "";
     }
 
     @Override
@@ -65,8 +66,21 @@ public class FileCommandExecutor implements FileCommand {
     @Override
     public List<String> getCurrentFilesList() throws IOException {
         return Files.list(currentDir)
+                .filter(this::isNotHidden)
+                .sorted()
                 .map(path -> path.getFileName().toString())
                 .collect(Collectors.toList());
+    }
+
+    private boolean isNotHidden(Path path) {
+        boolean result;
+        try {
+            result = !Files.isHidden(path);
+        } catch (IOException e) {
+//            System.out.println(e.getMessage());
+            return false;
+        }
+        return result;
     }
 
     @Override

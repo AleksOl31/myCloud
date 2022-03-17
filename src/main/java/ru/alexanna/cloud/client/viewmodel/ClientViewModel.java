@@ -11,6 +11,7 @@ import ru.alexanna.cloud.client.model.*;
 import ru.alexanna.cloud.io.general.FileCommand;
 import ru.alexanna.cloud.io.general.FileCommandExecutor;
 
+import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -24,9 +25,9 @@ public class ClientViewModel implements Observer {
     private final StringProperty serverDir = new SimpleStringProperty("");
     private final ReadOnlyListProperty<String> serverFiles = new SimpleListProperty<>(FXCollections.observableArrayList());
     private final StringProperty percentCompleted = new SimpleStringProperty("test");
-    private ClientSideModel clientSideModel;
+//    private ClientSideModel clientSideModel;
     // Изменения 16.03.22 - для перехода на FileCommand в кач-ве ClientSideModel
-//    private FileCommand clientSideModel
+    private FileCommand clientSideModel;
     private CloudServer serverSideModel;
 
     public ClientViewModel() {
@@ -35,23 +36,28 @@ public class ClientViewModel implements Observer {
     }
 
     private void initClientSideState() {
-        clientSideModel = new ClientSideModel(Paths.get(System.getProperty("user.home")));
-//        clientSideModel = new FileCommandExecutor(Paths.get(System.getProperty("user.home")));
+//        clientSideModel = new ClientSideModel(Paths.get(System.getProperty("user.home")));
+        clientSideModel = new FileCommandExecutor(Paths.get(System.getProperty("user.home")));
         updateClientSideState();
     }
 
-    private void updateClientSideState() {
+    @Override
+    public void updateClientSideState() {
         Platform.runLater(() -> {
             setClientDir(clientSideModel.getCurrentDir().toString());
             clientFiles.clear();
-            clientFiles.addAll(clientSideModel.getCurrentFilesList().stream()
-                    .map(path -> path.getFileName().toString())
-                    .collect(Collectors.toList()));
+            try {
+                clientFiles.addAll(clientSideModel.getCurrentFilesList()/*.stream()
+                        .map(path -> path.getFileName().toString())
+                        .collect(Collectors.toList())*/);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
         });
     }
 
     private void initServerSideState() {
-        serverSideModel = new ServerSideModel();
+        serverSideModel = new ServerSideModel(clientSideModel);
         serverSideModel.registerObserver(this);
     }
 
@@ -118,16 +124,17 @@ public class ClientViewModel implements Observer {
     }
 
     public void changeClientDir(String selectedDir) {
+
         Path selectedPath = clientSideModel.getCurrentDir().resolve(selectedDir);
         if (Files.isDirectory(selectedPath)) {
-            clientSideModel.setCurrentDir(selectedPath);
+            clientSideModel.setCurrentDir(selectedPath.toString());
             updateClientSideState();
         }
     }
 
     public void goToTopClientFolder() {
         Path parentPath = clientSideModel.getCurrentDir().getParent();
-        clientSideModel.setCurrentDir(parentPath);
+        clientSideModel.setCurrentDir(parentPath.toString());
         updateClientSideState();
     }
 

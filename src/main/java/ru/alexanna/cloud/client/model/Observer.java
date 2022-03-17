@@ -11,4 +11,5 @@ public interface Observer {
      * @param serverFilesList list of files in the current folder
      */
     void updateServerSideState(String serverDir, List<String> serverFilesList);
+    void updateClientSideState();
 }

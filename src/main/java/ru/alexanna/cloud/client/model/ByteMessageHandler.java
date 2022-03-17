@@ -2,11 +2,8 @@ package ru.alexanna.cloud.client.model;
 
 import lombok.extern.slf4j.Slf4j;
 import ru.alexanna.cloud.io.general.Command;
-import ru.alexanna.cloud.io.general.FileCommand;
-import ru.alexanna.cloud.io.general.FileCommandExecutor;
 
 import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,19 +13,19 @@ public class ByteMessageHandler implements MessageListener, Command {
 
     private final CloudServer serverSideModel;
     private final DataInputStream is;
-    private final FileCommand fileCommander;
+//    private final FileCommand fileCommander;
 
     public ByteMessageHandler(CloudServer serverSideModel) {
         this.serverSideModel = serverSideModel;
         is = serverSideModel.getConnection().getIs();
-        fileCommander = new FileCommandExecutor();
+//        fileCommander = new FileCommandExecutor();
     }
 
     @Override
     public void onMessageReceived(byte message) throws IOException {
         switch (message) {
             case POST_FILE:
-                processPostFile();
+                processGetFile();
                 break;
             case GET_FILES_LIST:
                 processGetFilesList();
@@ -48,16 +45,15 @@ public class ByteMessageHandler implements MessageListener, Command {
 
     private void processPostCompleted() throws IOException {
         long sendCompleted = is.readLong();
-        log.debug(String.valueOf(sendCompleted));
+        log.debug("Server received {} bytes", sendCompleted);
     }
 
-    private void processPostFile() throws IOException {
+    private void processGetFile() throws IOException {
         String fileName = is.readUTF();
-        log.debug("Receive file: {}", fileName);
         long fileSize = is.readLong();
-        fileCommander.writeFile(fileName, fileSize, is, (bytesCompleted) -> {
-            log.debug(String.valueOf(bytesCompleted));
-        });
+        log.debug("Receive file: {}, size - {} bytes", fileName, fileSize);
+
+        serverSideModel.writeFile(fileName, fileSize);
     }
 
     private void processGetFilesList() throws IOException {

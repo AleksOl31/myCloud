@@ -51,6 +51,7 @@ public class ClientMsgProcessor implements Command {
 
     private void getFileClientRequestProcess() throws IOException {
         String fileName = is.readUTF();
+        log.debug(fileName);
         fileCommander.sendFileToClient(os, fileName);
     }
 
@@ -73,7 +74,7 @@ public class ClientMsgProcessor implements Command {
         try {
             List<String> files = fileCommander.getCurrentFilesList();
             os.writeByte(GET_FILES_LIST);
-            os.writeUTF(fileCommander.getCurrentDir());
+            os.writeUTF(fileCommander.getCurrentDir().toString());
             os.writeInt(files.size());
             for (String file : files) {
                 os.writeUTF(file);
@@ -112,15 +113,12 @@ public class ClientMsgProcessor implements Command {
             fileCommander.writeFile(fileName, fileSize, is, (bytesCompleted) -> {
                 sendMessage(POST_COMPLETED, bytesCompleted);
             });
-        /*} catch (IOException e) {
-            log.error("Exception in getFileFromClient");
-            e.printStackTrace();
-        }*/
     }
 
     private void changePathRequestProcess() throws IOException {
         String requestedDir = is.readUTF();
         fileCommander.setCurrentDir(requestedDir);
+        log.debug(fileCommander.getCurrentDir().toString());
         sendServerFilesList();
     }
 
